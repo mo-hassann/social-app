@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 
-import user from "./user";
+import test from "./test";
 import post from "./post";
 
 const app = new Hono();
 
 const routes = app /*  */
-  .route("/user", user)
+  .route("/test", test)
   .route("/post", post);
 
 export default routes;
