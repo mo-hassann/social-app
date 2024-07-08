@@ -5,11 +5,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signInFormSchema } from "@/validators";
+import { signUpFormSchema } from "@/validators";
 
-const FormSchema = signInFormSchema;
+const FormSchema = signUpFormSchema;
 type FormSchemaType = z.infer<typeof FormSchema>;
 
 type props = {
@@ -21,15 +21,25 @@ type props = {
 export default function SignInForm({ defaultValues, onSubmit, disabled }: props) {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues,
   });
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>name</FormLabel>
+              <FormControl>
+                <Input disabled={disabled} placeholder="example" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="email"
@@ -50,7 +60,20 @@ export default function SignInForm({ defaultValues, onSubmit, disabled }: props)
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input disabled={disabled} type="password" placeholder="example@example.com" {...field} />
+                <Input disabled={disabled} type="password" placeholder="********" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <Input disabled={disabled} type="password" placeholder="********" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

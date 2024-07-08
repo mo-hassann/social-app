@@ -6,12 +6,12 @@ import client from "@/server/client";
 import { InferRequestType, InferResponseType } from "hono";
 import { handleErrors } from "@/lib/errors";
 
-const $post = client.api.v1["user"]["login"]["$post"];
+const $post = client.api.v1["user"]["register"]["$post"];
 
 type resT = InferResponseType<typeof $post>;
 type reqT = InferRequestType<typeof $post>["json"];
 
-export default function useSignIn() {
+export default function useSignUp() {
   const router = useRouter();
   const mutation = useMutation<any, Error, reqT>({
     mutationFn: async (values) => {
@@ -23,12 +23,10 @@ export default function useSignIn() {
       }
     },
     onSuccess: () => {
-      toast.success("user logged in successfully");
-      router.push("/");
+      router.push("/sign-in");
+      toast.success("user signed up successfully");
     },
     onError: (error) => {
-      console.log(error);
-
       toast.error(error.message);
     },
   });

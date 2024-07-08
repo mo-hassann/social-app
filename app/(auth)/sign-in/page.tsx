@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 import useSignIn from "@/client/auth/api/use-sign-in";
 import SignInForm from "@/client/auth/components/sign-in-form";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function SignInPage() {
   const singInMutation = useSignIn();
@@ -17,6 +19,11 @@ export default function SignInPage() {
       <CardContent>
         <SignInForm defaultValues={{ email: "", password: "" }} disabled={isPending} onSubmit={(values) => singInMutation.mutate(values)} />
       </CardContent>
+      <CardFooter>
+        <Button variant={"link"} asChild>
+          <Link href="/sign-up">Don&apos;t have an account? sign up</Link>
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
