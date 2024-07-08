@@ -25,3 +25,4 @@ export const apiAuthPrefix = ["/api"];
  */
 export const DEFAULT_SIGN_IN_REDIRECT = "/";
 export const DEFAULT_SIGN_OUT_REDIRECT = "/sign-in";
+export const DEFAULT_AUTH_ERROR_REDIRECT = "/auth-error";

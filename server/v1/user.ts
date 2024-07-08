@@ -6,13 +6,10 @@ import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
 import bcrypt from "bcryptjs";
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 
 const app = new Hono()
-  .get("/test", async (c) => {
-    return c.redirect("/");
-  })
   .post("/register", zValidator("json", signUpFormSchema), async (c) => {
     try {
       const values = c.req.valid("json");
@@ -35,7 +32,7 @@ const app = new Hono()
       const hashedPassword = bcrypt.hashSync(values.password, 8);
 
       // add the user to the db
-      const newUser = await db
+      await db
         .insert(userTable)
         .values({ ...values, userName, password: hashedPassword })
         .returning({ name: userTable.name });
