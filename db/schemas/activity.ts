@@ -3,6 +3,7 @@ import { followingTable, userTable } from "./user";
 import { postTable } from "./post";
 import { commentTable, subCommentTable } from "./comment";
 import { commentLikeTable, postLikeTable } from "./like";
+import { createSelectSchema } from "drizzle-zod";
 
 export const activityEnum = pgEnum("activity_enum", ["CREATE_POST", "EDIT_POST", "CREATE_COMMENT", "EDIT_COMMENT", "CREATE_SUB_COMMENT", "EDIT_SUB_COMMENT", "POST_LIKE", "COMMENT_LIKE", "FOLLOW_USER"]);
 
@@ -23,3 +24,6 @@ export const activityTable = pgTable("activity", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),
 });
+
+// db tables schemas
+export const activitySchema = createSelectSchema(activityTable);

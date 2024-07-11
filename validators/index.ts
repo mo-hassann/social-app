@@ -1,11 +1,8 @@
 import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { userTable } from "@/db/schemas/user";
-
-// db tables schemas
-export const userSchema = createInsertSchema(userTable, {
-  email: (schema) => schema.email.email(),
-});
+import { postTable } from "@/db/schemas/post";
+import { postLikeTable } from "@/db/schemas/like";
 
 // form schemas
 export const signInFormSchema = z.object({
@@ -21,3 +18,7 @@ export const signUpFormSchema = z
     confirmPassword: z.string(),
   })
   .refine((check) => check.password === check.confirmPassword, { message: "passwords must mach", path: ["confirmPassword"] });
+
+export const newPostFormSchema = createInsertSchema(postTable).pick({ content: true, image: true });
+
+export const addPostLikeSchema = createInsertSchema(postLikeTable).omit({ id: true });

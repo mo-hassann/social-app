@@ -2,6 +2,7 @@ import { pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
 import { userTable } from "./user";
 import { postTable } from "./post";
 import { commentTable } from "./comment";
+import { createSelectSchema } from "drizzle-zod";
 
 export const postLikeTable = pgTable(
   "post_like",
@@ -34,3 +35,7 @@ export const commentLikeTable = pgTable(
     uniqueUserComment: unique("unique_user_comment").on(table.commentId, table.userId),
   })
 );
+
+// db tables schemas
+export const postLikeSchema = createSelectSchema(postLikeTable);
+export const commentLikeSchema = createSelectSchema(commentLikeTable);

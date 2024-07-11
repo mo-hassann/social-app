@@ -8,6 +8,7 @@ import { Hono } from "hono";
 import bcrypt from "bcryptjs";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
+import { generateRandomUserName } from "@/lib";
 
 const app = new Hono()
   .post("/register", zValidator("json", signUpFormSchema), async (c) => {
@@ -25,8 +26,7 @@ const app = new Hono()
       }
 
       // create random unique user name because it require in the db and user can change this userName in their profile after registration and login successfully
-      const randomNumbers = Math.round(Math.random() * 10 ** 8);
-      const userName = `${values.name}_${randomNumbers}`; // todo replace all " " and "-" with "_" using regex
+      const userName = generateRandomUserName(values.name, 12, 20);
 
       // hash the password before send it to the db
       const hashedPassword = bcrypt.hashSync(values.password, 8);
@@ -36,6 +36,8 @@ const app = new Hono()
         .insert(userTable)
         .values({ ...values, userName, password: hashedPassword })
         .returning({ name: userTable.name });
+
+      return c.json({});
     } catch (error: any) {
       console.log(error);
       return c.json({ message: "field to register the user", cause: error?.message }, 400);

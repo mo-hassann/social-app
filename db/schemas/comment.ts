@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { userTable } from "./user";
 import { postTable } from "./post";
+import { createSelectSchema } from "drizzle-zod";
 
 export const commentTable = pgTable("comment", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -27,3 +28,7 @@ export const subCommentTable = pgTable("sub_comment", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),
 });
+
+// db tables schemas
+export const commentSchema = createSelectSchema(commentTable);
+export const subCommentSchema = createSelectSchema(subCommentTable);
