@@ -5,15 +5,15 @@ import client from "@/server/client";
 import { handleErrors } from "@/lib/errors";
 
 type props = {
-  postId: string;
   userId?: string;
+  postId: string;
 };
 
-export default function useGetLikeState(values: props) {
+export default function useGetComments({ userId = "", postId }: props) {
   const query = useQuery({
-    queryKey: ["like_count", values.postId],
+    queryKey: ["comments"],
     queryFn: async () => {
-      const res = await client.api.v1.like.$get({ query: values });
+      const res = await client.api.v1.comment.$get({ query: { userId, postId } });
 
       // handle throw the error response
       if (!res.ok) {

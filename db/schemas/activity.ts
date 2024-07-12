@@ -1,11 +1,11 @@
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { followingTable, userTable } from "./user";
 import { postTable } from "./post";
-import { commentTable, subCommentTable } from "./comment";
+import { commentTable } from "./comment";
 import { commentLikeTable, postLikeTable } from "./like";
 import { createSelectSchema } from "drizzle-zod";
 
-export const activityEnum = pgEnum("activity_enum", ["CREATE_POST", "EDIT_POST", "CREATE_COMMENT", "EDIT_COMMENT", "CREATE_SUB_COMMENT", "EDIT_SUB_COMMENT", "POST_LIKE", "COMMENT_LIKE", "FOLLOW_USER"]);
+export const activityEnum = pgEnum("activity_enum", ["CREATE_POST", "EDIT_POST", "CREATE_COMMENT", "EDIT_COMMENT", "POST_LIKE", "COMMENT_LIKE", "FOLLOW_USER"]);
 
 export const activityTable = pgTable("activity", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -19,7 +19,6 @@ export const activityTable = pgTable("activity", {
   postLikeId: uuid("post_like_id").references(() => postLikeTable.id),
   commentLikeId: uuid("comment_like_id").references(() => commentLikeTable.id),
   followingId: uuid("following_id").references(() => followingTable.id),
-  subCommentId: uuid("sub_comment_id").references(() => subCommentTable.id),
 
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),

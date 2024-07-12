@@ -4,11 +4,11 @@ import useGetPosts from "@/client/post/api/use-get-posts";
 import useNewPost from "@/client/post/api/use-new-post";
 import NewPostForm from "@/client/post/components/new-post-form";
 import PostCard from "@/client/post/components/post-card";
+import { useGetUserId } from "@/hooks/use-get-user-id";
 import { useSession } from "@/hooks/use-session";
 
 export default function HomeSection() {
-  const session = useSession();
-  const userId = session.session?.user.id;
+  const userId = useGetUserId();
   const postsQuery = useGetPosts({ userId });
 
   const postMutation = useNewPost();
@@ -19,11 +19,10 @@ export default function HomeSection() {
 
   if (isError) return <p>error</p>;
   if (isLoading) return <p>loading...</p>;
-  console.log(session);
 
   return (
     <div className="p-4">
-      {session && userId && <NewPostForm defaultValues={{ content: "", image: null }} disabled={isPending} onSubmit={(values) => postMutation.mutate({ ...values, userId })} />}
+      {userId && <NewPostForm defaultValues={{ content: "", image: null }} disabled={isPending} onSubmit={(values) => postMutation.mutate({ ...values, userId })} />}
       <div className="space-y-3 my-5">
         {postsQuery.data?.map((post) => (
           <PostCard key={post.id} currentUserId={userId} post={post} isCurrentUserPost={post.userId === userId} />

@@ -1,17 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { ThumbsUp } from "lucide-react";
-import useToggleLike from "../api/use-toggle-like";
 import { useState } from "react";
+import useToggleCommentLike from "../api/use-toggle-comment-like";
 
 type props = {
-  postId: string;
+  commentId: string;
   likeCount: number;
   curUserId?: string;
   isLiked: boolean;
 };
 
-export default function LikeBtn({ postId, likeCount, curUserId, isLiked }: props) {
-  const toggleLikeMutation = useToggleLike();
+export default function CommentLikeBtn({ commentId, likeCount, curUserId, isLiked }: props) {
+  const toggleLikeMutation = useToggleCommentLike();
   const [isLikedState, setIsLikedState] = useState(isLiked);
   const [likeCountState, setLikeCountState] = useState(+likeCount);
 
@@ -20,7 +20,7 @@ export default function LikeBtn({ postId, likeCount, curUserId, isLiked }: props
     setIsLikedState((curState) => !curState);
     setLikeCountState((curState) => (isLikedState ? curState - 1 : curState + 1));
     toggleLikeMutation.mutate(
-      { postId, userId: curUserId },
+      { commentId, userId: curUserId },
       {
         onError: () => {
           setIsLikedState((curState) => !curState);

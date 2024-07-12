@@ -6,52 +6,47 @@ import { formatDistance } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dot, EllipsisVertical, MessageCircleHeart, ThumbsUp } from "lucide-react";
 import LikeBtn from "@/client/like/components/like-btn";
+import CommentLikeBtn from "@/client/like/components/comment-like-btn";
 
 type props = {
   currentUserId?: string;
-  isCurrentUserPost: boolean;
-  post: {
+  isCurrentUserComment: boolean;
+  comment: {
     id: string;
     content: string;
-    image: string | null;
-    createdAt: string;
+    createdAt: string | null;
     userId: string;
-    isLiked: boolean;
     user: string;
     username: string;
+    isLiked: boolean;
     userImage: string | null;
-    commentCount: number;
     likeCount: number;
-    tags: {
-      id?: string;
-      name: string;
-    }[];
   };
 };
 
-export default function PostCard({ post, currentUserId, isCurrentUserPost }: props) {
+export default function CommentCard({ comment, currentUserId, isCurrentUserComment }: props) {
   return (
-    <Card>
+    <Card className="ml-7 mt-3">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src={post.userImage || undefined} alt={post.username} />
-              <AvatarFallback>{post.user.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarImage src={comment.userImage || undefined} alt={comment.username} />
+              <AvatarFallback>{comment.user.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
 
             <div className="flex flex-col leading-4">
-              <p className="capitalize">{post.user}</p>
+              <p className="capitalize">{comment.user}</p>
               <Button className="p-0 m-0 h-auto" variant="link" asChild>
-                <Link href={`/user/${post.userId}`}>@{post.username}</Link>
+                <Link href={`/user/${comment.userId}`}>@{comment.username}</Link>
               </Button>
             </div>
             <p className="text-muted-foreground text-xs flex items-center">
               <Dot />
-              {formatDistance(new Date(post.createdAt), new Date())}
+              {formatDistance(new Date(comment.createdAt as string), new Date())}
             </p>
           </div>
-          {isCurrentUserPost && (
+          {isCurrentUserComment && (
             <Button size="icon" variant="ghost">
               <EllipsisVertical size={12} />
             </Button>
@@ -59,17 +54,11 @@ export default function PostCard({ post, currentUserId, isCurrentUserPost }: pro
         </div>
       </CardHeader>
       <CardContent>
-        <h3>{post.content}</h3>
-        {post.image && <Image src={post.image} alt={post.content} width={200} height={200} />}
+        <h5>{comment.content}</h5>
       </CardContent>
       <CardFooter className="flex items-center">
         <div className="flex items-center gap-3">
-          <LikeBtn curUserId={currentUserId} isLiked={post.isLiked} likeCount={post.likeCount} postId={post.id} />
-          <Button asChild size="sm" variant="outline">
-            <Link href={`/posts/${post.id}`}>
-              {post.commentCount} <MessageCircleHeart className="ml-2" size={16} />
-            </Link>
-          </Button>
+          <CommentLikeBtn curUserId={currentUserId} isLiked={comment.isLiked} likeCount={comment.likeCount} commentId={comment.id} />
         </div>
       </CardFooter>
     </Card>
