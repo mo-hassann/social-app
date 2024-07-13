@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { generateRandomUserName } from "@/lib";
+import { z } from "zod";
 
 const app = new Hono()
   .post("/register", zValidator("json", signUpFormSchema), async (c) => {
@@ -65,6 +66,23 @@ const app = new Hono()
       }
       return c.json({});
     }
+  })
+  .get("/:id", zValidator("param", z.object({ id: z.string() })), async (c) => {
+    const { id: userId } = c.req.valid("param");
+    const [data] = await db
+      .select({
+        id: userTable.id,
+        name: userTable.name,
+        username: userTable.userName,
+        email: userTable.email,
+        bio: userTable.bio,
+        image: userTable.image,
+        dateOfBirth: userTable.dateOfBirth,
+      })
+      .from(userTable)
+      .where(eq(userTable.id, userId));
+
+    return c.json({ data });
   });
 
 export default app;

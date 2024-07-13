@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { newCommentFormSchema } from "@/validators";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { SendHorizonal } from "lucide-react";
 
 const FormSchema = newCommentFormSchema;
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -16,9 +18,10 @@ type props = {
   onSubmit: (values: FormSchemaType) => void;
   defaultValues: FormSchemaType;
   disabled: boolean;
+  className?: string;
 };
 
-export default function NewCommentForm({ defaultValues, onSubmit, disabled }: props) {
+export default function NewCommentForm({ defaultValues, onSubmit, disabled, className }: props) {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues,
@@ -26,13 +29,12 @@ export default function NewCommentForm({ defaultValues, onSubmit, disabled }: pr
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-6 flex items-center gap-3", className)}>
         <FormField
           control={form.control}
           name="content"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
+            <FormItem className="w-full">
               <FormControl>
                 <Textarea disabled={disabled} placeholder="example@example.com" {...field} />
               </FormControl>
@@ -40,8 +42,8 @@ export default function NewCommentForm({ defaultValues, onSubmit, disabled }: pr
             </FormItem>
           )}
         />
-        <Button disabled={disabled} type="submit">
-          Submit
+        <Button disabled={disabled} size="icon" type="submit">
+          <SendHorizonal />
         </Button>
       </form>
     </Form>

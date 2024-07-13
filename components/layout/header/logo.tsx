@@ -1,5 +1,9 @@
-import React from "react";
+import Link from "next/link";
 
 export default function Logo() {
-  return <div className="text-xl text-primary font-extrabold">Social</div>;
+  return (
+    <Link href="/" className="text-xl text-primary font-extrabold">
+      Social
+    </Link>
+  );
 }

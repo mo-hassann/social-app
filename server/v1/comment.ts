@@ -40,27 +40,29 @@ const app = new Hono()
         // algorism to order the posts
         .orderBy(asc(sql`${count(commentLikeTable)}`), asc(commentTable.createdAt));
 
-      type dataT = typeof data & { children?: typeof data; level?: number }[];
+      type dataT = ((typeof data)[0] & { children: typeof data; level: number })[];
 
       // format the comments to tree
-      const parents = data.filter((comment) => comment.parentCommentId === null);
       const createTree = (elements: dataT, level: number): dataT => {
         return elements.map((parent) => {
-          level++;
-          const children = data.filter((comment) => comment.parentCommentId === parent.id);
-          const childrenTree = createTree(children, level);
+          const children = commentsData.filter((comment) => comment.parentCommentId === parent.id);
+          const childrenTree = createTree(children, level + 1);
           return { ...parent, level, children: childrenTree };
         });
       };
 
-      const formattedData = createTree(parents, 0);
+      const commentsData = data.map((comment) => ({ ...comment, level: 0, children: [] }));
+      // get the parent comments
+      const parents = commentsData.filter((comment) => comment.parentCommentId === null);
+      // create tree from the parent
+      const formattedData = createTree(parents, 1);
 
       return c.json({ data: formattedData });
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to get posts", cause: error?.message }, 400);
     }
   })
-  .post("/", zValidator("json", newCommentFormSchema.and(z.object({ userId: z.string(), postId: z.string() }))), async (c) => {
+  .post("/", zValidator("json", newCommentFormSchema.and(z.object({ userId: z.string(), postId: z.string(), parentCommentId: z.string().nullable() }))), async (c) => {
     try {
       const values = c.req.valid("json");
 
@@ -70,51 +72,6 @@ const app = new Hono()
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to add new post", cause: error?.message }, 400);
     }
-  })
-  .get("/test", zValidator("query", z.object({ userId: z.string(), postId: z.string() })), async (c) => {
-    const { userId, postId } = c.req.valid("query");
-    const curCommentLike = db
-      .select()
-      .from(commentLikeTable)
-      .where(and(eq(commentLikeTable.userId, userId), eq(commentLikeTable.commentId, commentTable.id)));
-    /* 
-             is_liked ${exists(curCommentLike)},
-            like_count count(${commentLikeTable.id}),
-       is_liked ${exists(curCommentLike)},
-            like_count count(${commentLikeTable.id}),
-      */
-
-    const res = await db.execute(sql`
-         WITH RECURSIVE comment_tree AS (
-    SELECT 
-      comment.id, comment.content, comment.user_id, comment.post_id, comment.parent_comment_id, comment.created_at, comment.updated_at,
-      --user.name AS username,
-      --post.content AS post_content,
-      1 AS level
-    FROM comment
-    --JOIN user ON comment.user_id = user.id
-    --JOIN post ON comment.post_id = post.id
-    WHERE comment.parent_comment_id IS NULL
-    
-    UNION ALL
-    
-    SELECT 
-      comment.id, comment.content, comment.user_id, comment.post_id, comment.parent_comment_id, comment.created_at, comment.updated_at,
-      --user.name AS username,
-      --post.content AS post_content,
-      comment_tree.level + 1
-    FROM comment
-    --JOIN user ON comment.user_id = user.id
-    --JOIN post ON comment.post_id = post.id
-    JOIN comment_tree ON comment.parent_comment_id = comment_tree.id
-  )
-      SELECT * FROM comment_tree
-      ORDER BY level, created_at
-    `);
-
-    const data = res.rows;
-
-    return c.json({ data });
   });
 
 export default app;
