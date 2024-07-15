@@ -15,8 +15,8 @@ export const commentTable = pgTable(
       .notNull()
       .references(() => postTable.id, { onDelete: "cascade" }),
     parentCommentId: uuid("parent_comment_id"),
-    createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
-    updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true }).defaultNow(),
   },
   (comment) => ({
     parentRef: foreignKey({
@@ -27,4 +27,7 @@ export const commentTable = pgTable(
 );
 
 // db tables schemas
-export const commentSchema = createSelectSchema(commentTable);
+export const commentSelectSchema = createSelectSchema(commentTable);
+export const commentInsertSchema = createSelectSchema(commentTable);
+
+export const editCommentSchema = commentInsertSchema.pick({ content: true });

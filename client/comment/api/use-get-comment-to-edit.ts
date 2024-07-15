@@ -4,15 +4,11 @@ import client from "@/server/client";
 
 import { handleErrors } from "@/lib/errors";
 
-type props = {
-  postId: string;
-};
-
-export default function useGetPost({ postId }: props) {
+export default function useGetCommentToEdit(commentId: string) {
   const query = useQuery({
-    queryKey: ["post", postId],
+    queryKey: ["comment", commentId],
     queryFn: async () => {
-      const res = await client.api.v1.post[":id"].$get({ param: { id: postId } });
+      const res = await client.api.v1.comment[":id"]["to-edit"].$get({ param: { id: commentId } });
 
       // handle throw the error response
       if (!res.ok) {

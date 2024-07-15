@@ -2,13 +2,14 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import db from "@/db";
-import { postTable, postToTagTable, tagSchema, tagTable } from "@/db/schemas/post";
+import { postTable, postToTagTable, tagSchema, tagTable, editPostSchema } from "@/db/schemas/post";
 import { and, count, desc, eq, exists, isNotNull, isNull, sql, sum } from "drizzle-orm";
 import { newPostFormSchema } from "@/validators";
 import { userTable } from "@/db/schemas/user";
 import { commentTable } from "@/db/schemas/comment";
 import { postLikeTable } from "@/db/schemas/like";
 import { verifyAuth } from "@hono/auth-js";
+import { format } from "date-fns";
 
 const app = new Hono()
   .get("/", verifyAuth(), async (c) => {
@@ -154,6 +155,45 @@ const app = new Hono()
       return c.json({ data: post });
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to get posts", cause: error.message }, 400);
+    }
+  })
+  .get("/:id/to-edit", zValidator("param", z.object({ id: z.string() })), async (c) => {
+    try {
+      const { id: postId } = c.req.valid("param");
+
+      const [data] = await db
+        .select({
+          id: postTable.id,
+          content: postTable.content,
+          image: postTable.image,
+        })
+        .from(postTable)
+        .where(eq(postTable.id, postId));
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something wrong when trying to get posts", cause: error.message }, 400);
+    }
+  })
+  .patch("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), zValidator("json", editPostSchema), async (c) => {
+    try {
+      const { id: postId } = c.req.valid("param");
+      const values = c.req.valid("json");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const updatedAt = new Date().toISOString();
+
+      const data = await db
+        .update(postTable)
+        .set({ ...values, updatedAt })
+        .where((eq(postTable.id, postId), eq(postTable.userId, curUserId)))
+        .returning({ postId: postTable.id })
+        .then((table) => table[0]);
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
     }
   })
   .delete("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {

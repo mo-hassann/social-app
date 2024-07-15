@@ -7,7 +7,7 @@ import { formatDistance } from "date-fns";
 import { Dot, EllipsisVertical, MessageCircleHeart, ThumbsUp } from "lucide-react";
 import LikeBtn from "@/client/like/components/like-btn";
 import UserAvatar from "@/components/user-avatar";
-import useIsMountain from "@/hooks/use-is-mountain";
+import useIsMountain from "@/hooks/use-mountain";
 import PostActions from "./post-actions";
 
 type props = {
@@ -47,7 +47,7 @@ export default function PostCard({ post, curUserId }: props) {
             </div>
             <p className="text-muted-foreground text-xs flex items-center">
               <Dot />
-              {formatDistance(new Date(post.createdAt), new Date())}
+              {post.createdAt && formatDistance(new Date(post.createdAt), new Date())}
             </p>
           </div>
           {curUserId === post.userId && <PostActions postId={post.id} />}

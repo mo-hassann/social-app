@@ -20,8 +20,8 @@ export const activityTable = pgTable("activity", {
   commentLikeId: uuid("comment_like_id").references(() => commentLikeTable.id),
   followingId: uuid("following_id").references(() => followingTable.id),
 
-  createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
-  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow(),
+  createdAt: timestamp("created_at", { mode: "string", withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true }).defaultNow(),
 });
 
 // db tables schemas

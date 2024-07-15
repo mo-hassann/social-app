@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, varchar, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { userTable } from "./user";
-import { createSelectSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const postTable = pgTable("post", {
@@ -10,8 +10,8 @@ export const postTable = pgTable("post", {
     .references(() => userTable.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   image: text("image"),
-  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { mode: "string", withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true }).notNull().defaultNow(),
 });
 
 export const tagTable = pgTable("tag", {
@@ -35,8 +35,9 @@ export const postToTagTable = pgTable(
 );
 
 // db tables schemas
-export const postSchema = createSelectSchema(postTable);
+export const postSelectSchema = createSelectSchema(postTable);
+export const postInsertSchema = createInsertSchema(postTable);
 export const tagSchema = createSelectSchema(tagTable);
 export const postToTagSchema = createSelectSchema(postToTagTable);
 
-type t = z.infer<typeof tagSchema>;
+export const editPostSchema = postInsertSchema.pick({ content: true });

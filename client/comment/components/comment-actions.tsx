@@ -1,9 +1,10 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical, Trash2 } from "lucide-react";
+import { Edit2, EllipsisVertical, Trash2 } from "lucide-react";
 
 import Spinner from "@/components/spinner";
 import useConfirm from "@/hooks/use-confirm";
 import useDeleteComment from "../api/use-delete-comment";
+import useEditCommentDialog from "../hooks/use-edit-comment-dialog";
 
 type props = {
   commentId: string;
@@ -11,6 +12,7 @@ type props = {
 
 export default function CommentActions({ commentId }: props) {
   const [ConfirmationDialog, confirm] = useConfirm();
+  const { onOpen } = useEditCommentDialog();
   const deletePostMutation = useDeleteComment();
   const isPending = deletePostMutation.isPending;
 
@@ -21,6 +23,14 @@ export default function CommentActions({ commentId }: props) {
           <EllipsisVertical size={12} />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          <DropdownMenuItem
+            disabled={isPending}
+            onClick={async () => {
+              onOpen(commentId);
+            }}
+          >
+            <Edit2 size={16} className="mr-2" /> Edit
+          </DropdownMenuItem>
           <DropdownMenuItem
             disabled={isPending}
             onClick={async () => {

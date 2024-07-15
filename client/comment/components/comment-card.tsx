@@ -66,7 +66,7 @@ export default function CommentCard({ comment, curUserId }: props) {
                 </div>
                 <p className="text-muted-foreground text-xs flex items-center">
                   <Dot />
-                  {formatDistance(new Date(comment.createdAt as string), new Date())}
+                  {comment.createdAt && formatDistance(new Date(comment.createdAt as string), new Date())}
                 </p>
               </div>
               {comment.userId === curUserId && <CommentActions commentId={comment.id} />}

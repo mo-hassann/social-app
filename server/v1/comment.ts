@@ -6,9 +6,10 @@ import { postTable, postToTagTable, tagSchema, tagTable } from "@/db/schemas/pos
 import { and, asc, count, desc, eq, exists, isNull, sql, sum } from "drizzle-orm";
 import { newCommentFormSchema, newPostFormSchema } from "@/validators";
 import { userTable } from "@/db/schemas/user";
-import { commentTable } from "@/db/schemas/comment";
+import { commentTable, editCommentSchema } from "@/db/schemas/comment";
 import { commentLikeTable } from "@/db/schemas/like";
 import { verifyAuth } from "@hono/auth-js";
+import { format } from "date-fns";
 
 const app = new Hono()
   .get("/", zValidator("query", z.object({ userId: z.string().optional(), postId: z.string() })), async (c) => {
@@ -63,6 +64,23 @@ const app = new Hono()
       return c.json({ message: "something wrong when trying to get posts", cause: error?.message }, 400);
     }
   })
+  .get("/:id/to-edit", zValidator("param", z.object({ id: z.string() })), async (c) => {
+    try {
+      const { id: commentId } = c.req.valid("param");
+
+      const [data] = await db
+        .select({
+          id: commentTable.id,
+          content: commentTable.content,
+        })
+        .from(commentTable)
+        .where(eq(commentTable.id, commentId));
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something wrong when trying to get posts", cause: error.message }, 400);
+    }
+  })
   .post("/", zValidator("json", newCommentFormSchema.and(z.object({ userId: z.string(), postId: z.string(), parentCommentId: z.string().nullable() }))), async (c) => {
     try {
       const values = c.req.valid("json");
@@ -72,6 +90,26 @@ const app = new Hono()
       return c.json({});
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to add new post", cause: error?.message }, 400);
+    }
+  })
+  .patch("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), zValidator("json", editCommentSchema), async (c) => {
+    try {
+      const { id: commentId } = c.req.valid("param");
+      const values = c.req.valid("json");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const updatedAt = new Date().toISOString();
+
+      const [data] = await db
+        .update(commentTable)
+        .set({ ...values, updatedAt })
+        .where((eq(commentTable.id, commentId), eq(commentTable.userId, curUserId)))
+        .returning({ commentId: commentTable.id, postId: commentTable.postId });
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
     }
   })
   .delete("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {

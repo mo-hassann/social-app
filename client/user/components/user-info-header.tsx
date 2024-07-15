@@ -3,6 +3,7 @@ import UserAvatar from "@/components/user-avatar";
 import FollowBtn from "./follow-btn";
 import useEditProfileDialog from "../hooks/use-edit-profile-dialog";
 import { Edit } from "lucide-react";
+import Spinner from "@/components/spinner";
 
 type props = {
   curUserId?: string;
@@ -34,12 +35,13 @@ export default function UserInfoHeader({ user, curUserId }: props) {
           lorem
           <p className="text-primary">@{user.username}</p>
         </div>
-        {curUserId !== user.id && <FollowBtn userId={user.id} isFollowed={user.isFollowed} />}
-        {curUserId === user.id && (
+        {!curUserId && <Spinner />}
+        {typeof curUserId === "string" && curUserId === user.id && (
           <Button variant="outline" onClick={() => onEditProfileDialogOpen()}>
             <Edit size={16} className="mr-2" /> edit profile
           </Button>
         )}
+        {typeof curUserId === "string" && curUserId !== user.id && <FollowBtn userId={user.id} isFollowed={user.isFollowed} />}
         <div>
           <p>following: {user.followingCount}</p>
           <p>followers: {user.followersCount}</p>

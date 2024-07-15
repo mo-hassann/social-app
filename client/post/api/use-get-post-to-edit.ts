@@ -4,15 +4,11 @@ import client from "@/server/client";
 
 import { handleErrors } from "@/lib/errors";
 
-type props = {
-  postId: string;
-};
-
-export default function useGetPost({ postId }: props) {
+export default function useGetPostToEdit(postId: string) {
   const query = useQuery({
-    queryKey: ["post", postId],
+    queryKey: ["post_edit", postId],
     queryFn: async () => {
-      const res = await client.api.v1.post[":id"].$get({ param: { id: postId } });
+      const res = await client.api.v1.post[":id"]["to-edit"].$get({ param: { id: postId } });
 
       // handle throw the error response
       if (!res.ok) {
