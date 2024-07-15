@@ -6,15 +6,17 @@ import client from "@/server/client";
 import { InferRequestType, InferResponseType } from "hono";
 import { handleErrors } from "@/lib/errors";
 
-const $post = client.api.v1.like.comment[":id"].$post;
+const $patch = client.api.v1.user.$patch;
 
-type resT = InferResponseType<typeof $post>;
-type reqT = InferRequestType<typeof $post>["param"];
+type resT = InferResponseType<typeof $patch>;
+type reqT = InferRequestType<typeof $patch>["json"];
 
-export default function useToggleCommentLike() {
+export default function useEditUserProfile() {
+  const queryClient = useQueryClient();
   const mutation = useMutation<resT, Error, reqT>({
-    mutationFn: async ({ id }) => {
-      const res = await $post({ param: { id } });
+    mutationFn: async (values) => {
+      console.log(values, "from mutation");
+      const res = await $patch({ json: { ...values } });
 
       // handle throw the error response
       if (!res.ok) {
@@ -22,8 +24,11 @@ export default function useToggleCommentLike() {
       }
       return await res.json();
     },
-    onSuccess: () => {
-      toast.success("like added successfully");
+    onSuccess: (data) => {
+      if ("data" in data) {
+        queryClient.invalidateQueries({ queryKey: ["user", data.data.userId] });
+      }
+      toast.success("post updated successfully");
     },
     onError: (error) => {
       toast.error(error.message);

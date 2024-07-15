@@ -14,7 +14,7 @@ type props = {
     userId: string;
     user: string;
     username: string;
-    isLiked: never;
+    isLiked: boolean;
     userImage: string | null;
     commentCount: number;
     likeCount: number;

@@ -9,7 +9,7 @@ type props = {
   postId: string;
 };
 
-export default function useGetComments({ userId = "", postId }: props) {
+export default function useGetComments({ userId, postId }: props) {
   const query = useQuery({
     queryKey: ["comments"],
     queryFn: async () => {

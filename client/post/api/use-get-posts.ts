@@ -12,7 +12,7 @@ export default function useGetPosts({ userId }: props) {
   const query = useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
-      const res = await client.api.v1.post.$get({ query: { userId } });
+      const res = await client.api.v1.post.$get();
 
       // handle throw the error response
       if (!res.ok) {

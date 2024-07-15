@@ -8,8 +8,6 @@ import useReplayComment from "@/client/comment/hooks/use-comment-replay";
 import useGetPost from "@/client/post/api/use-get-post";
 import PostCard from "@/client/post/components/post-card";
 import { useGetUserId } from "@/hooks/use-get-user-id";
-import { ReplyAll, X } from "lucide-react";
-import { useState } from "react";
 
 type props = { params: { postId: string } };
 
@@ -19,15 +17,16 @@ export default function PostPage({ params: { postId } }: props) {
   const newCommentMutation = useNewComment();
   const replayComment = useReplayComment((state) => state.comment);
 
+  const isError = postQuery.isError || newCommentMutation.isError;
+  const isLoading = postQuery.isLoading || postQuery.isPending;
   const isPending = newCommentMutation.isPending;
 
-  if (postQuery.isError) return <div>error</div>;
-  if (postQuery.isPending) return <div>pending</div>;
-  if (postQuery.isLoading) return <div>loading...</div>;
+  if (isError) return <div>error</div>;
+  if (isLoading) return <div>loading...</div>;
 
   return (
     <div className="flex flex-col p-3 overflow-auto h-full">
-      <PostCard post={postQuery.data} isCurrentUserPost={postQuery.data.userId === userId} curUserId={userId} />
+      {postQuery.data && <PostCard post={postQuery.data} curUserId={userId} />}
 
       <div className="mb-52">
         <CommentsSection postId={postId} userId={userId} />

@@ -1,8 +1,8 @@
 import db from "@/db";
-import { userTable } from "@/db/schemas/user";
+import { followingTable, updateUserProfileSchema, userInsertSchema, userTable } from "@/db/schemas/user";
 import { signInFormSchema, signUpFormSchema } from "@/validators";
 import { zValidator } from "@hono/zod-validator";
-import { eq } from "drizzle-orm";
+import { and, count, eq, exists, sql } from "drizzle-orm";
 import { Hono } from "hono";
 
 import bcrypt from "bcryptjs";
@@ -10,6 +10,8 @@ import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { generateRandomUserName } from "@/lib";
 import { z } from "zod";
+import { verifyAuth } from "@hono/auth-js";
+import { format } from "date-fns";
 
 const app = new Hono()
   .post("/register", zValidator("json", signUpFormSchema), async (c) => {
@@ -67,22 +69,81 @@ const app = new Hono()
       return c.json({});
     }
   })
-  .get("/:id", zValidator("param", z.object({ id: z.string() })), async (c) => {
-    const { id: userId } = c.req.valid("param");
-    const [data] = await db
-      .select({
-        id: userTable.id,
-        name: userTable.name,
-        username: userTable.userName,
-        email: userTable.email,
-        bio: userTable.bio,
-        image: userTable.image,
-        dateOfBirth: userTable.dateOfBirth,
-      })
-      .from(userTable)
-      .where(eq(userTable.id, userId));
+  .get("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
+    try {
+      const { id: userId } = c.req.valid("param");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
 
-    return c.json({ data });
+      const [following] = await db.select({ count: count() }).from(followingTable).where(eq(followingTable.followedBy, userId));
+      const [followers] = await db.select({ count: count() }).from(followingTable).where(eq(followingTable.userId, userId));
+      const [isFollowed] = await db
+        .select()
+        .from(followingTable)
+        .where(and(eq(followingTable.userId, userId), eq(followingTable.followedBy, curUserId)));
+
+      const [data] = await db
+        .select({
+          id: userTable.id,
+          name: userTable.name,
+          username: userTable.userName,
+          email: userTable.email,
+          bio: userTable.bio,
+          image: userTable.image,
+          dateOfBirth: userTable.dateOfBirth,
+        })
+        .from(userTable)
+        .where(eq(userTable.id, userId));
+
+      const user = { ...data, followingCount: following.count, followersCount: followers.count, isFollowed: !!isFollowed };
+      console.log(user, "---------user");
+
+      return c.json({ data: user });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
+    }
+  })
+  .post("/follow/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
+    try {
+      const { id: userId } = c.req.valid("param");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const [isFollowing] = await db
+        .select()
+        .from(followingTable)
+        .where(and(eq(followingTable.userId, userId), eq(followingTable.followedBy, curUserId)));
+
+      if (isFollowing) {
+        await db.delete(followingTable).where(and(eq(followingTable.userId, userId), eq(followingTable.followedBy, curUserId)));
+      } else {
+        await db.insert(followingTable).values({ userId, followedBy: curUserId });
+      }
+
+      return c.json({});
+    } catch (error: any) {
+      return c.json({ message: "something went wrong went trying to follow this user", cause: error.message }, 400);
+    }
+  })
+  .patch("/", verifyAuth(), zValidator("json", updateUserProfileSchema), async (c) => {
+    try {
+      const values = c.req.valid("json");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const dateOfBirth = values.dateOfBirth ? format(values.dateOfBirth, "dd-MM-yyyy") : null;
+
+      const data = await db
+        .update(userTable)
+        .set({ ...values, dateOfBirth })
+        .where(eq(userTable.id, curUserId))
+        .returning({ userId: userTable.id, name: userTable.name })
+        .then((table) => table[0]);
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message });
+    }
   });
 
 export default app;

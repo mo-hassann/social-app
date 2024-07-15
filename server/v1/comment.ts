@@ -3,20 +3,20 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import db from "@/db";
 import { postTable, postToTagTable, tagSchema, tagTable } from "@/db/schemas/post";
-import { and, asc, count, desc, eq, exists, sql, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, exists, isNull, sql, sum } from "drizzle-orm";
 import { newCommentFormSchema, newPostFormSchema } from "@/validators";
 import { userTable } from "@/db/schemas/user";
 import { commentTable } from "@/db/schemas/comment";
 import { commentLikeTable } from "@/db/schemas/like";
 
 const app = new Hono()
-  .get("/", zValidator("query", z.object({ userId: z.string(), postId: z.string() })), async (c) => {
+  .get("/", zValidator("query", z.object({ userId: z.string().optional(), postId: z.string() })), async (c) => {
     const { userId, postId } = c.req.valid("query");
     try {
       const curCommentLike = db
         .select()
         .from(commentLikeTable)
-        .where(and(eq(commentLikeTable.userId, userId), eq(commentLikeTable.commentId, commentTable.id)));
+        .where(userId ? and(eq(commentLikeTable.userId, userId), eq(commentLikeTable.commentId, commentTable.id)) : isNull(commentLikeTable.userId));
 
       const data = await db
         .select({

@@ -81,7 +81,7 @@ export default function CommentCard({ comment, curUserId, isCurrentUserComment }
           </CardContent>
           <CardFooter className="flex items-center">
             <div className="flex items-center gap-3">
-              <CommentLikeBtn curUserId={curUserId} isLiked={comment.isLiked} likeCount={comment.likeCount} commentId={comment.id} />
+              <CommentLikeBtn isLiked={comment.isLiked} likeCount={comment.likeCount} commentId={comment.id} />
               <Button size="sm" variant="outline" onClick={onReplay}>
                 replay <ReplyAll className="ml-2" size={16} />
               </Button>

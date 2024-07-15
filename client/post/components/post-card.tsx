@@ -7,6 +7,7 @@ import { formatDistance } from "date-fns";
 import { Dot, EllipsisVertical, MessageCircleHeart, ThumbsUp } from "lucide-react";
 import LikeBtn from "@/client/like/components/like-btn";
 import UserAvatar from "@/components/user-avatar";
+import useIsMountain from "@/hooks/use-is-mountain";
 
 type props = {
   curUserId?: string;
@@ -30,21 +31,6 @@ type props = {
 };
 
 export default function PostCard({ post, curUserId }: props) {
-  // function to mark the tags
-  const renderContentWithTags = (text: string) => {
-    const regex = /#(\w+)/g;
-    // debugger;
-    return text.split(regex).map((part, index) =>
-      index % 2 === 1 ? (
-        <Link className="text-blue-500 hover:underline" href={`?tag=${part}`} key={index}>
-          #{part}
-        </Link>
-      ) : (
-        part
-      )
-    );
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -76,7 +62,7 @@ export default function PostCard({ post, curUserId }: props) {
       </CardContent>
       <CardFooter className="flex items-center">
         <div className="flex items-center gap-3">
-          <LikeBtn curUserId={curUserId} isLiked={post.isLiked} likeCount={post.likeCount} postId={post.id} />
+          <LikeBtn isLiked={post.isLiked} likeCount={post.likeCount} postId={post.id} />
           <Button asChild size="sm" variant="outline">
             <Link href={`/posts/${post.id}`}>
               {post.commentCount} <MessageCircleHeart className="ml-2" size={16} />
@@ -85,5 +71,20 @@ export default function PostCard({ post, curUserId }: props) {
         </div>
       </CardFooter>
     </Card>
+  );
+}
+
+// function to mark the tags
+function renderContentWithTags(text: string) {
+  const regex = /#(\w+)/g;
+  // debugger;
+  return text.split(regex).map((part, index) =>
+    index % 2 === 1 ? (
+      <Link className="text-blue-500 hover:underline" href={`?tag=${part}`} key={index}>
+        #{part}
+      </Link>
+    ) : (
+      part
+    )
   );
 }

@@ -6,12 +6,13 @@ import client from "@/server/client";
 import { InferRequestType, InferResponseType } from "hono";
 import { handleErrors } from "@/lib/errors";
 
-const $post = client.api.v1.like.comment[":id"].$post;
+const $post = client.api.v1.like.post[":id"].$post;
 
 type resT = InferResponseType<typeof $post>;
 type reqT = InferRequestType<typeof $post>["param"];
 
-export default function useToggleCommentLike() {
+export default function useTogglePostLike() {
+  const queryClient = useQueryClient();
   const mutation = useMutation<resT, Error, reqT>({
     mutationFn: async ({ id }) => {
       const res = await $post({ param: { id } });

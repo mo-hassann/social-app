@@ -8,22 +8,25 @@ import { addCommentLikeSchema, addPostLikeSchema, newPostFormSchema } from "@/va
 import { userTable } from "@/db/schemas/user";
 import { commentTable } from "@/db/schemas/comment";
 import { commentLikeTable, postLikeTable } from "@/db/schemas/like";
+import { verifyAuth } from "@hono/auth-js";
 
 const app = new Hono()
-  .post("/", zValidator("json", addPostLikeSchema), async (c) => {
+  .post("/post/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
     try {
-      const values = c.req.valid("json");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+      const { id: postId } = c.req.valid("param");
 
-      const [currentLike] = await db
+      const [isLiked] = await db
         .select()
         .from(postLikeTable)
-        .where(and(eq(postLikeTable.userId, values.userId), eq(postLikeTable.postId, values.postId)));
+        .where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postId)));
 
       // add the like and if already exist delete it
-      if (!currentLike) {
-        await db.insert(postLikeTable).values(values);
+      if (isLiked) {
+        await db.delete(postLikeTable).where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postId)));
       } else {
-        await db.delete(postLikeTable).where(and(eq(postLikeTable.userId, values.userId), eq(postLikeTable.postId, values.postId)));
+        await db.insert(postLikeTable).values({ postId, userId: curUserId });
       }
 
       // await db.execute(sql`insert into ${postLikeTable} (${postLikeTable.postId}, ${postLikeTable.userId}) values (${values.postId},${values.userId}) on conflict do update`);
@@ -33,20 +36,22 @@ const app = new Hono()
       return c.json({ message: "something wrong when trying to add like", cause: error?.message }, 400);
     }
   })
-  .post("/comment", zValidator("json", addCommentLikeSchema), async (c) => {
+  .post("/comment/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
     try {
-      const values = c.req.valid("json");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+      const { id: commentId } = c.req.valid("param");
 
       const [currentLike] = await db
         .select()
         .from(commentLikeTable)
-        .where(and(eq(commentLikeTable.userId, values.userId), eq(commentLikeTable.commentId, values.commentId)));
+        .where(and(eq(commentLikeTable.userId, curUserId), eq(commentLikeTable.commentId, commentId)));
 
       // add the like and if already exist delete it
       if (!currentLike) {
-        await db.insert(commentLikeTable).values(values);
+        await db.insert(commentLikeTable).values({ commentId, userId: curUserId });
       } else {
-        await db.delete(commentLikeTable).where(and(eq(commentLikeTable.userId, values.userId), eq(commentLikeTable.commentId, values.commentId)));
+        await db.delete(commentLikeTable).where(and(eq(commentLikeTable.userId, curUserId), eq(commentLikeTable.commentId, commentId)));
       }
 
       return c.json({});

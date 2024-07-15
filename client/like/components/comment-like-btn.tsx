@@ -6,33 +6,31 @@ import useToggleCommentLike from "../api/use-toggle-comment-like";
 type props = {
   commentId: string;
   likeCount: number;
-  curUserId?: string;
   isLiked: boolean;
 };
 
-export default function CommentLikeBtn({ commentId, likeCount, curUserId, isLiked }: props) {
+export default function CommentLikeBtn({ commentId, likeCount, isLiked }: props) {
   const toggleLikeMutation = useToggleCommentLike();
-  const [isLikedState, setIsLikedState] = useState(isLiked);
-  const [likeCountState, setLikeCountState] = useState(+likeCount);
+  const [optimisticLike, setOptimisticLike] = useState({ isLiked, likeCount: Number(likeCount) });
+
+  const isPending = toggleLikeMutation.isPending;
 
   const onClick = () => {
-    if (!curUserId) return;
-    setIsLikedState((curState) => !curState);
-    setLikeCountState((curState) => (isLikedState ? curState - 1 : curState + 1));
+    setOptimisticLike((curState) => ({ isLiked: !curState.isLiked, likeCount: curState.isLiked ? curState.likeCount - 1 : curState.likeCount + 1 }));
+
     toggleLikeMutation.mutate(
-      { commentId, userId: curUserId },
+      { id: commentId },
       {
         onError: () => {
-          setIsLikedState((curState) => !curState);
-          setLikeCountState((curState) => (isLikedState ? curState + 1 : curState - 1));
+          setOptimisticLike((curState) => ({ isLiked: !curState, likeCount: curState.isLiked ? curState.likeCount - 1 : curState.likeCount + 1 }));
         },
       }
     );
   };
 
   return (
-    <Button size="sm" variant={isLikedState ? "default" : "outline"} onClick={onClick}>
-      {likeCountState} <ThumbsUp className="ml-2" size={16} />
+    <Button disabled={isPending} size="sm" variant={optimisticLike.isLiked ? "default" : "outline"} onClick={onClick}>
+      {optimisticLike.likeCount} <ThumbsUp className="ml-2" size={16} />
     </Button>
   );
 }

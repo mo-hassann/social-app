@@ -8,15 +8,18 @@ import { newPostFormSchema } from "@/validators";
 import { userTable } from "@/db/schemas/user";
 import { commentTable } from "@/db/schemas/comment";
 import { postLikeTable } from "@/db/schemas/like";
+import { verifyAuth } from "@hono/auth-js";
 
 const app = new Hono()
-  .get("/", zValidator("query", z.object({ userId: z.string().optional() })), async (c) => {
-    const { userId } = c.req.valid("query");
+  .get("/", verifyAuth(), async (c) => {
     try {
-      const curPostLike = db
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const getIsLikedByCurUser = db
         .select()
         .from(postLikeTable)
-        .where(userId ? and(eq(postLikeTable.userId, userId), eq(postLikeTable.postId, postTable.id)) : isNull(postLikeTable.userId));
+        .where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postTable.id)));
 
       const data = await db
         .select({
@@ -28,10 +31,10 @@ const app = new Hono()
           userId: postTable.userId,
           user: userTable.name,
           username: userTable.userName,
-          isLiked: exists(curPostLike),
+          isLiked: exists(getIsLikedByCurUser),
           userImage: userTable.image,
-          commentCount: sql<number>`count(${commentTable.id})`,
-          likeCount: sql<number>`count(${postLikeTable.id})`,
+          commentCount: count(commentTable.id).as("comment_count"),
+          likeCount: count(postLikeTable.id).as("like_count"),
         })
         .from(postTable)
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
@@ -50,13 +53,17 @@ const app = new Hono()
       return c.json({ message: "something wrong when trying to get posts", cause: error?.message }, 400);
     }
   })
-  .get("/user-posts", zValidator("query", z.object({ userId: z.string() })), async (c) => {
-    const { userId } = c.req.valid("query");
+  .get("/user/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
+    const auth = c.get("authUser");
+    const curUserId = auth.session.user?.id as string;
+
+    const { id: userId } = c.req.valid("param");
+
     try {
-      const curPostLike = db
+      const getIsLikedByCurUser = db
         .select()
         .from(postLikeTable)
-        .where(and(eq(postLikeTable.userId, userId), eq(postLikeTable.postId, postTable.id)));
+        .where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postTable.id)));
 
       const data = await db
         .select({
@@ -68,10 +75,10 @@ const app = new Hono()
           userId: postTable.userId,
           user: userTable.name,
           username: userTable.userName,
-          isLiked: exists(curPostLike),
+          isLiked: exists(getIsLikedByCurUser),
           userImage: userTable.image,
-          commentCount: sql<number>`count(${commentTable.id})`,
-          likeCount: sql<number>`count(${postLikeTable.id})`,
+          commentCount: sql<number>`count(${commentTable.id})`.mapWith(Number).as("comment_count"),
+          likeCount: sql<number>`count(${postLikeTable.id})`.mapWith(Number).as("like_count"),
         })
         .from(postTable)
         .where(eq(postTable.userId, userId))
@@ -90,14 +97,15 @@ const app = new Hono()
       return c.json({ message: "something wrong when trying to get posts", cause: error?.message }, 400);
     }
   })
-  .post("/", zValidator("json", newPostFormSchema.and(z.object({ userId: z.string() }))), async (c) => {
+  .post("/", verifyAuth(), zValidator("json", newPostFormSchema), async (c) => {
     try {
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
       const values = c.req.valid("json");
-      console.log(values, "values post---------------------");
 
       const data = await db
         .insert(postTable)
-        .values(values)
+        .values({ ...values, userId: curUserId })
         .returning({ id: postTable.id, content: postTable.content })
         .then((table) => table[0]);
 
@@ -106,14 +114,18 @@ const app = new Hono()
       return c.json({ message: "something wrong when trying to add new post", cause: error?.message }, 400);
     }
   })
-  .get("/:id", zValidator("query", z.object({ userId: z.string() })), zValidator("param", z.object({ id: z.string() })), async (c) => {
-    const { id: postId } = c.req.valid("param");
-    const { userId } = c.req.valid("query");
+  .get("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
     try {
-      const curPostLike = db
+      const { id: postId } = c.req.valid("param");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const [isLiked] = await db
         .select()
         .from(postLikeTable)
-        .where(and(eq(postLikeTable.userId, userId), eq(postLikeTable.postId, postTable.id)));
+        .where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postId)));
+      const [comments] = await db.select({ count: count() }).from(commentTable).where(eq(commentTable.postId, postId));
+      const [likes] = await db.select({ count: count() }).from(postLikeTable).where(eq(postLikeTable.postId, postId));
 
       const data = await db
         .select({
@@ -125,28 +137,23 @@ const app = new Hono()
           userId: postTable.userId,
           user: userTable.name,
           username: userTable.userName,
-          isLiked: exists(curPostLike),
           userImage: userTable.image,
-          commentCount: sql<number>`count(${commentTable.id})`,
-          likeCount: sql<number>`count(${postLikeTable.id})`,
         })
         .from(postTable)
         .where(eq(postTable.id, postId))
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
         .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
         .leftJoin(tagTable, eq(tagTable.id, postToTagTable.tagId))
-        .leftJoin(postLikeTable, eq(postTable.id, postLikeTable.postId))
-        .leftJoin(commentTable, eq(postTable.id, commentTable.postId))
 
         .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image)
         .limit(1)
         .then(([post]) => ({ ...post, tags: (post.tags ?? []).filter((tag) => tag !== null) }));
 
-      console.log(data, "-----------data");
+      const post = { ...data, likeCount: likes.count, commentCount: comments.count, isLiked: !!isLiked };
 
-      return c.json({ data });
+      return c.json({ data: post });
     } catch (error: any) {
-      return c.json({ message: "something wrong when trying to get posts", cause: error?.message }, 400);
+      return c.json({ message: "something wrong when trying to get posts", cause: error.message }, 400);
     }
   });
 
