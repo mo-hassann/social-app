@@ -8,6 +8,7 @@ import { newCommentFormSchema, newPostFormSchema } from "@/validators";
 import { userTable } from "@/db/schemas/user";
 import { commentTable } from "@/db/schemas/comment";
 import { commentLikeTable } from "@/db/schemas/like";
+import { verifyAuth } from "@hono/auth-js";
 
 const app = new Hono()
   .get("/", zValidator("query", z.object({ userId: z.string().optional(), postId: z.string() })), async (c) => {
@@ -71,6 +72,23 @@ const app = new Hono()
       return c.json({});
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to add new post", cause: error?.message }, 400);
+    }
+  })
+  .delete("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
+    try {
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const { id: commentId } = c.req.valid("param");
+
+      const [data] = await db
+        .delete(commentTable)
+        .where(and(eq(commentTable.id, commentId), eq(commentTable.userId, curUserId)))
+        .returning({ id: commentTable.id, postId: commentTable.postId });
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
     }
   });
 

@@ -155,6 +155,20 @@ const app = new Hono()
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to get posts", cause: error.message }, 400);
     }
+  })
+  .delete("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
+    try {
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const { id: postId } = c.req.valid("param");
+
+      await db.delete(postTable).where(and(eq(postTable.id, postId), eq(postTable.userId, curUserId)));
+
+      return c.json({});
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
+    }
   });
 
 export default app;

@@ -8,6 +8,7 @@ import { Dot, EllipsisVertical, MessageCircleHeart, ThumbsUp } from "lucide-reac
 import LikeBtn from "@/client/like/components/like-btn";
 import UserAvatar from "@/components/user-avatar";
 import useIsMountain from "@/hooks/use-is-mountain";
+import PostActions from "./post-actions";
 
 type props = {
   curUserId?: string;
@@ -49,11 +50,7 @@ export default function PostCard({ post, curUserId }: props) {
               {formatDistance(new Date(post.createdAt), new Date())}
             </p>
           </div>
-          {curUserId === post.userId && (
-            <Button size="icon" variant="ghost">
-              <EllipsisVertical size={12} />
-            </Button>
-          )}
+          {curUserId === post.userId && <PostActions postId={post.id} />}
         </div>
       </CardHeader>
       <CardContent>

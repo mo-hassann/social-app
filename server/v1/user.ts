@@ -142,7 +142,7 @@ const app = new Hono()
 
       return c.json({ data });
     } catch (error: any) {
-      return c.json({ message: "something went wrong", cause: error.message });
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
     }
   });
 

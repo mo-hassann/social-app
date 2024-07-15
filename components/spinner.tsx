@@ -1,5 +1,11 @@
+import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
-export default function Spinner() {
-  return <Loader2 className="animate-spin" />;
+type props = {
+  className?: string;
+  size?: number;
+};
+
+export default function Spinner({ className, size }: props) {
+  return <Loader2 size={size} className={cn("animate-spin", className)} />;
 }

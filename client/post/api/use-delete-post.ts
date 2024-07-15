@@ -6,16 +6,16 @@ import client from "@/server/client";
 import { InferRequestType, InferResponseType } from "hono";
 import { handleErrors } from "@/lib/errors";
 
-const $post = client.api.v1.comment.$post;
+const $delete = client.api.v1.post[":id"].$delete;
 
-type resT = InferResponseType<typeof $post>;
-type reqT = InferRequestType<typeof $post>["json"];
+type resT = InferResponseType<typeof $delete>;
+type reqT = InferRequestType<typeof $delete>["param"];
 
-export default function useNewComment() {
+export default function useDeletePost() {
   const queryClient = useQueryClient();
   const mutation = useMutation<resT, Error, reqT>({
-    mutationFn: async (values) => {
-      const res = await $post({ json: { ...values } });
+    mutationFn: async ({ id }) => {
+      const res = await $delete({ param: { id } });
 
       // handle throw the error response
       if (!res.ok) {
@@ -23,9 +23,9 @@ export default function useNewComment() {
       }
       return await res.json();
     },
-    onSuccess: (_data, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ["comments", postId] });
-      toast.success("comment added successfully");
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      toast.success("post added successfully");
     },
     onError: (error) => {
       toast.error(error.message);

@@ -11,7 +11,7 @@ type props = {
 
 export default function useGetComments({ userId, postId }: props) {
   const query = useQuery({
-    queryKey: ["comments"],
+    queryKey: ["comments", postId],
     queryFn: async () => {
       const res = await client.api.v1.comment.$get({ query: { userId, postId } });
 

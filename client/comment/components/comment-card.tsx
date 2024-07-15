@@ -10,6 +10,7 @@ import CommentLikeBtn from "@/client/like/components/comment-like-btn";
 import { useState } from "react";
 import useCommentReplay from "../hooks/use-comment-replay";
 import useReplayComment from "../hooks/use-comment-replay";
+import CommentActions from "./comment-actions";
 
 type commentT = {
   id: string;
@@ -28,11 +29,10 @@ type commentT = {
 
 type props = {
   curUserId?: string;
-  isCurrentUserComment: boolean;
   comment: commentT;
 };
 
-export default function CommentCard({ comment, curUserId, isCurrentUserComment }: props) {
+export default function CommentCard({ comment, curUserId }: props) {
   const [isHide, setIsHide] = useState<boolean>(comment.level === 1 ? false : true); // keep the parent comment without hide
   const setReplayComment = useReplayComment((state) => state.setReplayComment);
 
@@ -69,11 +69,7 @@ export default function CommentCard({ comment, curUserId, isCurrentUserComment }
                   {formatDistance(new Date(comment.createdAt as string), new Date())}
                 </p>
               </div>
-              {isCurrentUserComment && (
-                <Button size="icon" variant="ghost">
-                  <EllipsisVertical size={12} />
-                </Button>
-              )}
+              {comment.userId === curUserId && <CommentActions commentId={comment.id} />}
             </div>
           </CardHeader>
           <CardContent>
@@ -92,7 +88,7 @@ export default function CommentCard({ comment, curUserId, isCurrentUserComment }
       {!isHide && (
         <>
           {comment.children?.map((childComment) => (
-            <CommentCard key={childComment.id} comment={{ ...childComment }} curUserId={curUserId} isCurrentUserComment={isCurrentUserComment} />
+            <CommentCard key={childComment.id} comment={{ ...childComment }} curUserId={curUserId} />
           ))}
         </>
       )}
