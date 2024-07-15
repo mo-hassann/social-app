@@ -13,7 +13,7 @@ type props = { params: { postId: string } };
 
 export default function PostPage({ params: { postId } }: props) {
   const userId = useGetUserId();
-  const postQuery = useGetPost({ postId, userId });
+  const postQuery = useGetPost(postId);
   const newCommentMutation = useNewComment();
   const replayComment = useReplayComment((state) => state.comment);
 

@@ -4,11 +4,7 @@ import client from "@/server/client";
 
 import { handleErrors } from "@/lib/errors";
 
-type props = {
-  postId: string;
-};
-
-export default function useGetPost({ postId }: props) {
+export default function useGetPost(postId: string) {
   const query = useQuery({
     queryKey: ["post", postId],
     queryFn: async () => {

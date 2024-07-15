@@ -9,7 +9,7 @@ import { useGetUserId } from "@/hooks/use-get-user-id";
 
 export default function HomePage() {
   const curUserId = useGetUserId();
-  const postsQuery = useGetPosts({ userId: curUserId });
+  const postsQuery = useGetPosts();
   const postMutation = useNewPost();
 
   const isError = postsQuery.isError || postMutation.isError;

@@ -15,7 +15,7 @@ export default function CommentsSection({ postId, userId }: props) {
   return (
     <>
       {comments.map((comment) => (
-        <CommentCard key={comment.id} comment={{ ...comment }} isCurrentUserComment={comment.userId === userId} curUserId={userId} />
+        <CommentCard key={comment.id} comment={{ ...comment }} curUserId={userId} />
       ))}
     </>
   );
