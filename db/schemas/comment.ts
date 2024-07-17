@@ -1,4 +1,4 @@
-import { foreignKey, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { foreignKey, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { userTable } from "./user";
 import { postTable } from "./post";
 import { createSelectSchema } from "drizzle-zod";
@@ -8,6 +8,7 @@ export const commentTable = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     content: text("content").notNull(),
+    likeCount: integer("like_count").notNull().default(0),
     userId: uuid("user_id")
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),

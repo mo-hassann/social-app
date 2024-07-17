@@ -10,7 +10,7 @@ import { format } from "date-fns";
 export default function EditProfileDialog() {
   const { isOpen, onClose } = useEditProfileDialog();
   const userId = useGetUserId();
-  const userQuery = useGetUser({ userId: userId as string });
+  const userQuery = useGetUser({ userId: userId as string, enabled: isOpen });
   const userMutation = useEditUserProfile();
 
   const user = userQuery.data;

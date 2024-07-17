@@ -21,6 +21,7 @@ export default function useGetUserPosts({ userId }: props) {
       const { data } = await res.json();
       return data;
     },
+    enabled: !!userId,
   });
 
   return query;

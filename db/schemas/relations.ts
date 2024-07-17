@@ -56,7 +56,7 @@ export const followingRelations = relations(followingTable, ({ one, many }) => (
 }));
 
 export const activityRelations = relations(activityTable, ({ one, many }) => ({
-  user: one(userTable, { fields: [activityTable.userId], references: [userTable.id] }),
+  user: one(userTable, { fields: [activityTable.userId, activityTable.ownedUserId], references: [userTable.id, userTable.id] }),
   posts: one(postTable, { fields: [activityTable.postId], references: [postTable.id] }),
   comment: one(commentTable, { fields: [activityTable.commentId], references: [commentTable.id] }),
   postLike: one(postLikeTable, { fields: [activityTable.postLikeId], references: [postLikeTable.id] }),

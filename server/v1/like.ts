@@ -18,15 +18,23 @@ const app = new Hono()
       const { id: postId } = c.req.valid("param");
 
       const [isLiked] = await db
-        .select()
+        .select({ id: postLikeTable.id })
         .from(postLikeTable)
         .where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postId)));
 
       // add the like and if already exist delete it
       if (isLiked) {
         await db.delete(postLikeTable).where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postId)));
+        await db
+          .update(postTable)
+          .set({ likeCount: sql`${postTable.likeCount} - 1` })
+          .where(eq(postTable.id, postId));
       } else {
         await db.insert(postLikeTable).values({ postId, userId: curUserId });
+        await db
+          .update(postTable)
+          .set({ likeCount: sql`${postTable.likeCount} + 1` })
+          .where(eq(postTable.id, postId));
       }
 
       // await db.execute(sql`insert into ${postLikeTable} (${postLikeTable.postId}, ${postLikeTable.userId}) values (${values.postId},${values.userId}) on conflict do update`);
@@ -42,16 +50,24 @@ const app = new Hono()
       const curUserId = auth.session.user?.id as string;
       const { id: commentId } = c.req.valid("param");
 
-      const [currentLike] = await db
-        .select()
+      const [isLiked] = await db
+        .select({ id: commentLikeTable.id })
         .from(commentLikeTable)
         .where(and(eq(commentLikeTable.userId, curUserId), eq(commentLikeTable.commentId, commentId)));
 
       // add the like and if already exist delete it
-      if (!currentLike) {
-        await db.insert(commentLikeTable).values({ commentId, userId: curUserId });
-      } else {
+      if (isLiked) {
         await db.delete(commentLikeTable).where(and(eq(commentLikeTable.userId, curUserId), eq(commentLikeTable.commentId, commentId)));
+        await db
+          .update(commentTable)
+          .set({ likeCount: sql`${commentTable.likeCount} - 1` })
+          .where(eq(commentTable.id, commentId));
+      } else {
+        await db.insert(commentLikeTable).values({ commentId, userId: curUserId });
+        await db
+          .update(commentTable)
+          .set({ likeCount: sql`${commentTable.likeCount} + 1` })
+          .where(eq(commentTable.id, commentId));
       }
 
       return c.json({});

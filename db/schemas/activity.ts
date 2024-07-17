@@ -12,6 +12,9 @@ export const activityTable = pgTable("activity", {
   userId: uuid("user_id")
     .notNull()
     .references(() => userTable.id),
+  ownedUserId: uuid("owned_user_id")
+    .notNull()
+    .references(() => userTable.id),
   activityName: activityEnum("activity_name"),
 
   postId: uuid("post_id").references(() => postTable.id),
@@ -21,7 +24,6 @@ export const activityTable = pgTable("activity", {
   followingId: uuid("following_id").references(() => followingTable.id),
 
   createdAt: timestamp("created_at", { mode: "string", withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true }).defaultNow(),
 });
 
 // db tables schemas

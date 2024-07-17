@@ -31,18 +31,22 @@ const app = new Hono()
           isLiked: exists(curCommentLike),
           userImage: userTable.image,
           parentCommentId: commentTable.parentCommentId,
-          likeCount: sql<number>`count(${commentLikeTable.id})`,
+          likeCount: commentTable.likeCount,
         })
         .from(commentTable)
         .where(eq(commentTable.postId, postId))
         .innerJoin(userTable, eq(commentTable.userId, userTable.id))
-        .leftJoin(commentLikeTable, eq(commentTable.id, commentLikeTable.commentId))
 
         .groupBy(commentTable.id, userTable.id, userTable.name, userTable.userName, userTable.image)
-        // algorism to order the posts
-        .orderBy(asc(sql`${count(commentLikeTable)}`), asc(commentTable.createdAt));
+        // algorism to order the comments
+        .orderBy(asc(commentTable.likeCount), asc(commentTable.createdAt));
 
       type dataT = ((typeof data)[0] & { children: typeof data; level: number })[];
+
+      /* 
+        the prepense of this logic below is to format the comments to be in a tree where a comment can have a children and the children can have 
+        also children comments and so on
+      */
 
       // format the comments to tree
       const createTree = (elements: dataT, level: number): dataT => {
@@ -87,6 +91,11 @@ const app = new Hono()
 
       await db.insert(commentTable).values(values);
 
+      await db
+        .update(postTable)
+        .set({ commentCount: sql`${postTable.commentCount} + 1` })
+        .where(eq(postTable.id, values.postId));
+
       return c.json({});
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to add new post", cause: error?.message }, 400);
@@ -119,12 +128,17 @@ const app = new Hono()
 
       const { id: commentId } = c.req.valid("param");
 
-      const [data] = await db
+      const [deletedComment] = await db
         .delete(commentTable)
         .where(and(eq(commentTable.id, commentId), eq(commentTable.userId, curUserId)))
-        .returning({ id: commentTable.id, postId: commentTable.postId });
+        .returning({ id: commentTable.id, postId: commentTable.postId, commentCount: postTable.commentCount });
 
-      return c.json({ data });
+      await db
+        .update(postTable)
+        .set({ commentCount: sql`${postTable.commentCount} - 1` })
+        .where(eq(postTable.id, deletedComment.postId));
+
+      return c.json({ data: deletedComment });
     } catch (error: any) {
       return c.json({ message: "something went wrong", cause: error.message }, 400);
     }

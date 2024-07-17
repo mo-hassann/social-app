@@ -34,21 +34,21 @@ const app = new Hono()
           username: userTable.userName,
           isLiked: exists(getIsLikedByCurUser),
           userImage: userTable.image,
-          commentCount: count(commentTable.id).as("comment_count"),
-          likeCount: count(postLikeTable.id).as("like_count"),
+          commentCount: postTable.commentCount,
+          likeCount: postTable.likeCount,
         })
         .from(postTable)
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
         .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
+        .leftJoin(postLikeTable, eq(postLikeTable.postId, postTable.id))
         .leftJoin(tagTable, eq(tagTable.id, postToTagTable.tagId))
-        .leftJoin(postLikeTable, eq(postTable.id, postLikeTable.postId))
-        .leftJoin(commentTable, eq(postTable.id, commentTable.postId))
 
         .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image)
         // algorism to order the posts
-        .orderBy(eq(userTable.id, postTable.userId), desc(sql`${count(postLikeTable)}+ ${count(commentTable)}`), desc(postTable.createdAt))
+        .orderBy(eq(userTable.id, postTable.userId), desc(sql`${postTable.likeCount} + ${postTable.commentCount}`), desc(postTable.createdAt))
         .then((posts) => posts.map((post) => ({ ...post, tags: (post.tags ?? []).filter((tag) => tag !== null) })));
 
+      console.log(data, "data post -------------");
       return c.json({ data });
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to get posts", cause: error?.message }, 400);
@@ -78,16 +78,15 @@ const app = new Hono()
           username: userTable.userName,
           isLiked: exists(getIsLikedByCurUser),
           userImage: userTable.image,
-          commentCount: sql<number>`count(${commentTable.id})`.mapWith(Number).as("comment_count"),
-          likeCount: sql<number>`count(${postLikeTable.id})`.mapWith(Number).as("like_count"),
+          commentCount: postTable.commentCount,
+          likeCount: postTable.likeCount,
         })
         .from(postTable)
         .where(eq(postTable.userId, userId))
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
         .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
+        .leftJoin(postLikeTable, eq(postLikeTable.postId, postTable.id))
         .leftJoin(tagTable, eq(tagTable.id, postToTagTable.tagId))
-        .leftJoin(postLikeTable, eq(postTable.id, postLikeTable.postId))
-        .leftJoin(commentTable, eq(postTable.id, commentTable.postId))
 
         .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image)
         .orderBy(desc(postTable.createdAt))
@@ -121,13 +120,6 @@ const app = new Hono()
       const auth = c.get("authUser");
       const curUserId = auth.session.user?.id as string;
 
-      const [isLiked] = await db
-        .select()
-        .from(postLikeTable)
-        .where(and(eq(postLikeTable.userId, curUserId), eq(postLikeTable.postId, postId)));
-      const [comments] = await db.select({ count: count() }).from(commentTable).where(eq(commentTable.postId, postId));
-      const [likes] = await db.select({ count: count() }).from(postLikeTable).where(eq(postLikeTable.postId, postId));
-
       const data = await db
         .select({
           id: postTable.id,
@@ -139,20 +131,22 @@ const app = new Hono()
           user: userTable.name,
           username: userTable.userName,
           userImage: userTable.image,
+          commentCount: postTable.commentCount,
+          isLiked: sql`(${postLikeTable.userId} = ${curUserId})`,
+          likeCount: postTable.likeCount,
         })
         .from(postTable)
         .where(eq(postTable.id, postId))
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
         .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
+        .leftJoin(postLikeTable, eq(postLikeTable.postId, postTable.id))
         .leftJoin(tagTable, eq(tagTable.id, postToTagTable.tagId))
 
-        .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image)
+        .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image, postLikeTable.userId)
         .limit(1)
         .then(([post]) => ({ ...post, tags: (post.tags ?? []).filter((tag) => tag !== null) }));
 
-      const post = { ...data, likeCount: likes.count, commentCount: comments.count, isLiked: !!isLiked };
-
-      return c.json({ data: post });
+      return c.json({ data });
     } catch (error: any) {
       return c.json({ message: "something wrong when trying to get posts", cause: error.message }, 400);
     }

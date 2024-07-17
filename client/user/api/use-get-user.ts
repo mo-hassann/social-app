@@ -6,9 +6,10 @@ import { handleErrors } from "@/lib/errors";
 
 type props = {
   userId: string;
+  enabled?: boolean;
 };
 
-export default function useGetUser({ userId }: props) {
+export default function useGetUser({ userId, enabled = true }: props) {
   const query = useQuery({
     queryKey: ["user", userId],
     queryFn: async () => {
@@ -22,6 +23,7 @@ export default function useGetUser({ userId }: props) {
 
       return data;
     },
+    enabled: enabled && !!userId,
   });
 
   return query;

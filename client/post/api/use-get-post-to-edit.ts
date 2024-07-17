@@ -18,6 +18,7 @@ export default function useGetPostToEdit(postId: string) {
 
       return data;
     },
+    enabled: !!postId,
   });
 
   return query;

@@ -75,13 +75,6 @@ const app = new Hono()
       const auth = c.get("authUser");
       const curUserId = auth.session.user?.id as string;
 
-      const [following] = await db.select({ count: count() }).from(followingTable).where(eq(followingTable.followedBy, userId));
-      const [followers] = await db.select({ count: count() }).from(followingTable).where(eq(followingTable.userId, userId));
-      const [isFollowed] = await db
-        .select()
-        .from(followingTable)
-        .where(and(eq(followingTable.userId, userId), eq(followingTable.followedBy, curUserId)));
-
       const [data] = await db
         .select({
           id: userTable.id,
@@ -91,12 +84,15 @@ const app = new Hono()
           bio: userTable.bio,
           image: userTable.image,
           dateOfBirth: userTable.dateOfBirth,
+          followersCount: userTable.followersCount,
+          followingCount: userTable.followingCount,
+          isFollowed: sql`(${followingTable.userId} = ${userTable.id}) and (${followingTable.followedBy} = ${curUserId})`,
         })
         .from(userTable)
+        .leftJoin(followingTable, eq(followingTable.userId, userTable.id))
         .where(eq(userTable.id, userId));
 
-      const user = { ...data, followingCount: following.count, followersCount: followers.count, isFollowed: !!isFollowed };
-      console.log(user, "---------user");
+      const user = { ...data };
 
       return c.json({ data: user });
     } catch (error: any) {
@@ -110,14 +106,30 @@ const app = new Hono()
       const curUserId = auth.session.user?.id as string;
 
       const [isFollowing] = await db
-        .select()
+        .select({ id: followingTable.id })
         .from(followingTable)
         .where(and(eq(followingTable.userId, userId), eq(followingTable.followedBy, curUserId)));
 
       if (isFollowing) {
         await db.delete(followingTable).where(and(eq(followingTable.userId, userId), eq(followingTable.followedBy, curUserId)));
+        await db
+          .update(userTable)
+          .set({ followersCount: sql`${userTable.followersCount} - 1` })
+          .where(eq(userTable.id, userId));
+        await db
+          .update(userTable)
+          .set({ followingCount: sql`${userTable.followingCount} - 1` })
+          .where(eq(userTable.id, curUserId));
       } else {
         await db.insert(followingTable).values({ userId, followedBy: curUserId });
+        await db
+          .update(userTable)
+          .set({ followersCount: sql`${userTable.followersCount} + 1` })
+          .where(eq(userTable.id, userId));
+        await db
+          .update(userTable)
+          .set({ followingCount: sql`${userTable.followingCount} + 1` })
+          .where(eq(userTable.id, curUserId));
       }
 
       return c.json({});

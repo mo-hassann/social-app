@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, varchar, date, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, varchar, date, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,6 +12,8 @@ export const userTable = pgTable("user", {
   bio: text("bio"),
   image: text("image"),
   dateOfBirth: date("date_of_birth", { mode: "string" }),
+  followingCount: integer("following_count").notNull().default(0),
+  followersCount: integer("followers_count").notNull().default(0),
 });
 
 export const followingTable = pgTable("following", {

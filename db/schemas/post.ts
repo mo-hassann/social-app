@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, varchar, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, varchar, timestamp, primaryKey, integer } from "drizzle-orm/pg-core";
 import { userTable } from "./user";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -10,6 +10,8 @@ export const postTable = pgTable("post", {
     .references(() => userTable.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   image: text("image"),
+  likeCount: integer("like_count").notNull().default(0),
+  commentCount: integer("comment_count").notNull().default(0),
   createdAt: timestamp("created_at", { mode: "string", withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true }).notNull().defaultNow(),
 });

@@ -18,6 +18,7 @@ export default function useGetCommentToEdit(commentId: string) {
 
       return data;
     },
+    enabled: !!commentId,
   });
 
   return query;
