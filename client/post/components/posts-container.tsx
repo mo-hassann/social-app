@@ -1,3 +1,4 @@
+import NoDataCard from "@/components/no-data-card";
 import PostCard from "./post-card";
 
 type props = {
@@ -22,6 +23,7 @@ type props = {
 };
 
 export default function PostsContainer({ posts, curUserId }: props) {
+  if (posts.length === 0) return <NoDataCard />;
   return (
     <div className="space-y-3 my-5">
       {posts.map((post) => (

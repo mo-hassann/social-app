@@ -23,9 +23,12 @@ export default function useEditPost(postId: string) {
       }
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["post", postId] });
       queryClient.invalidateQueries({ queryKey: ["post_edit", postId] });
+      if ("data" in data) {
+        queryClient.invalidateQueries({ queryKey: ["user_posts", data.data.userId] });
+      }
       toast.success("post added successfully");
     },
     onError: (error) => {

@@ -2,7 +2,7 @@ import db from "@/db";
 import { followingTable, updateUserProfileSchema, userInsertSchema, userTable } from "@/db/schemas/user";
 import { signInFormSchema, signUpFormSchema } from "@/validators";
 import { zValidator } from "@hono/zod-validator";
-import { and, count, eq, exists, sql } from "drizzle-orm";
+import { and, count, eq, exists, isNull, not, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 
 import bcrypt from "bcryptjs";
@@ -111,8 +111,52 @@ const app = new Hono()
           image: userTable.image,
         })
         .from(userTable)
-        .leftJoin(followingTable, eq(followingTable.userId, userTable.id))
+        .innerJoin(followingTable, eq(followingTable.userId, userTable.id))
         .where(eq(followingTable.followedBy, curUserId));
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
+    }
+  })
+  .get("/followers", verifyAuth(), async (c) => {
+    try {
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const data = await db
+        .select({
+          id: userTable.id,
+          name: userTable.name,
+          username: userTable.userName,
+          email: userTable.email,
+          image: userTable.image,
+        })
+        .from(userTable)
+        .innerJoin(followingTable, eq(followingTable.followedBy, userTable.id))
+        .where(eq(followingTable.userId, curUserId));
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
+    }
+  })
+  .get("/suggested-users", verifyAuth(), async (c) => {
+    try {
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const data = await db
+        .select({
+          id: userTable.id,
+          name: userTable.name,
+          username: userTable.userName,
+          email: userTable.email,
+          image: userTable.image,
+        })
+        .from(userTable)
+        .leftJoin(followingTable, and(eq(followingTable.userId, userTable.id), eq(followingTable.followedBy, curUserId)))
+        .where(and(not(eq(userTable.id, curUserId)), isNull(followingTable.userId)));
 
       return c.json({ data });
     } catch (error: any) {
@@ -154,6 +198,8 @@ const app = new Hono()
       const { id: userId } = c.req.valid("param");
       const auth = c.get("authUser");
       const curUserId = auth.session.user?.id as string;
+
+      if (userId === curUserId) return c.json("the user can not follow their self", 400);
 
       const [isFollowing] = await db
         .select({ id: followingTable.id })

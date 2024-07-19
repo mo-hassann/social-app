@@ -19,11 +19,6 @@ const app = new Hono()
       const auth = c.get("authUser");
       const curUserId = auth.session.user?.id as string;
 
-      const curCommentLike = db
-        .select()
-        .from(commentLikeTable)
-        .where(and(eq(commentLikeTable.userId, curUserId), eq(commentLikeTable.commentId, commentTable.id)));
-
       const data = await db
         .select({
           id: commentTable.id,
@@ -32,7 +27,7 @@ const app = new Hono()
           userId: commentTable.userId,
           user: userTable.name,
           username: userTable.userName,
-          isLiked: exists(curCommentLike),
+          isLiked: eq(commentLikeTable.userId, curUserId),
           userImage: userTable.image,
           parentCommentId: commentTable.parentCommentId,
           likeCount: commentTable.likeCount,
@@ -40,8 +35,9 @@ const app = new Hono()
         .from(commentTable)
         .where(eq(commentTable.postId, postId))
         .innerJoin(userTable, eq(commentTable.userId, userTable.id))
+        .leftJoin(commentLikeTable, eq(commentLikeTable.commentId, commentTable.id))
 
-        .groupBy(commentTable.id, userTable.id, userTable.name, userTable.userName, userTable.image)
+        .groupBy(commentTable.id, userTable.id, userTable.name, userTable.userName, userTable.image, commentLikeTable.userId)
         // algorism to order the comments
         .orderBy(asc(commentTable.likeCount), asc(commentTable.createdAt));
 

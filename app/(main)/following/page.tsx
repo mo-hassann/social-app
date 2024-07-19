@@ -1,32 +1,42 @@
 "use client";
+import useGetCurUserFollowers from "@/client/user/api/use-get-cur-user-followers";
 import useGetCurUserFollowing from "@/client/user/api/use-get-cur-user-following";
+import useGetCurUserSuggestion from "@/client/user/api/use-get-cur-user-suggestion";
 import ErrorCard from "@/components/error-card";
 import UserAvatar from "@/components/user-avatar";
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FollowingSection from "./_components/following-section";
+import FollowersSection from "./_components/followers-section";
+import SuggestionSection from "./_components/suggestion-section";
+
 export default function FollowingPage() {
-  const userFollowingQuery = useGetCurUserFollowing();
-
-  const isError = userFollowingQuery.isError;
-  const isLoading = userFollowingQuery.isLoading || userFollowingQuery.isPending;
-
-  if (isError) return <ErrorCard />;
-  if (isLoading) return <div>loading...</div>;
-
   return (
-    <div>
-      <h1 className="text-2xl mb-3">followers</h1>
-      {userFollowingQuery.data.map((user) => (
-        <Link key={user.id} href={`/users/${user.id}`} className="flex items-center p-2 rounded-md gap-2 bg-muted/10 hover:bg-muted/40">
-          <UserAvatar className="size-20" fallbackText={user.username} image={user.image || undefined} />
-          <div>
-            <p className="text-lg">{user.name}</p>
-            <p className="text-sm text-muted-foreground">@{user.username}</p>
-          </div>
-          <ExternalLinkIcon size={16} className="text-muted-foreground ml-auto" />
-        </Link>
-      ))}
+    <div className="space-y-3">
+      <Tabs defaultValue="following" className="w-full">
+        <TabsList className="w-full mb-4">
+          <TabsTrigger className="w-full" value="following">
+            following
+          </TabsTrigger>
+          <TabsTrigger className="w-full" value="followers">
+            followers
+          </TabsTrigger>
+          <TabsTrigger className="w-full" value="suggestion">
+            suggestion
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="following">
+          <FollowingSection />
+        </TabsContent>
+        <TabsContent value="followers">
+          <FollowersSection />
+        </TabsContent>
+        <TabsContent value="suggestion">
+          <SuggestionSection />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

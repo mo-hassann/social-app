@@ -10,7 +10,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </div>
       <div className="container h-full flex">
         <LeftSidebar className="h-full shadow-md w-96 shrink-0 rounded-3xl p-3 mt-3 hidden lg:block" />
-        <div className="w-full mx-auto h-full relative">{children}</div>
+        <div className="w-full mx-auto h-full relative p-3 mt-3">{children}</div>
         <RightSidebar className="h-full shadow-md w-80 shrink-0 rounded-3xl p-3 mt-3 hidden xl:block" />
       </div>
     </div>

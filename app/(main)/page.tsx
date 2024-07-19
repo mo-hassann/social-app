@@ -5,6 +5,7 @@ import useNewPost from "@/client/post/api/use-new-post";
 import NewPostForm from "@/client/post/components/new-post-form";
 import PostsContainer from "@/client/post/components/posts-container";
 import ErrorCard from "@/components/error-card";
+import NoDataCard from "@/components/no-data-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/hooks/use-session";
 
@@ -14,14 +15,15 @@ export default function HomePage() {
   const postMutation = useNewPost();
 
   const isError = postsQuery.isError || status === "error";
-  const isLoading = postsQuery.isLoading || postsQuery.isPending || status === "pending" || !session || !session.user;
+  const isLoading = postsQuery.isLoading || postsQuery.isPending || status === "pending" || !session || !session?.user;
   const isPending = postMutation.isPending;
 
   if (isError) return <ErrorCard />;
   if (isLoading) return <HomePageSkeleton />;
+  if (postsQuery.data.length === 0) return <NoDataCard />;
 
   return (
-    <div className="p-4 h-full overflow-y-scroll pb-16">
+    <div className="px-4 h-full overflow-y-scroll pb-16">
       <NewPostForm curUser={{ name: session.user.name as string | undefined, image: session.user.image as string | undefined }} defaultValues={{ content: "", image: null }} isPending={isPending} onSubmit={(values) => postMutation.mutate({ ...values })} />
       <PostsContainer posts={postsQuery.data} curUserId={session?.user?.id} />
     </div>

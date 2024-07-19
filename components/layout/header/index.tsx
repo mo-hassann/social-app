@@ -2,8 +2,6 @@ import Link from "next/link";
 
 import Searchbox from "./searchbox";
 import UserIcon from "./user-icon";
-import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Logo from "@/components/logo";
 import Navbar from "./navbar";
 
@@ -14,7 +12,7 @@ export default function Header() {
         <Link href="/">
           <Logo />
         </Link>
-        <Searchbox />
+        <Searchbox className="hidden lg:block" />
       </div>
 
       <Navbar />

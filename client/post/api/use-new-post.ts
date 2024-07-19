@@ -23,8 +23,11 @@ export default function useNewPost() {
       }
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      if ("data" in data) {
+        queryClient.invalidateQueries({ queryKey: ["user_posts", data.data.userId] });
+      }
       toast.success("post added successfully");
     },
     onError: (error) => {

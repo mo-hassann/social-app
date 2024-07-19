@@ -3,6 +3,7 @@
 import useGetNotifications from "@/client/notification/api/use-get-notifications";
 import NotificationItem from "@/client/notification/components/notification-item";
 import ErrorCard from "@/components/error-card";
+import NoDataCard from "@/components/no-data-card";
 
 export default function NotificationPage() {
   const notificationQuery = useGetNotifications();
@@ -12,6 +13,7 @@ export default function NotificationPage() {
 
   if (isError) return <ErrorCard />;
   if (isLoading) return <div>loading...</div>;
+  if (notificationQuery.data.length === 0) return <NoDataCard />;
 
   return (
     <div className="m-3 text-left p-0">

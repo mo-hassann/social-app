@@ -17,15 +17,13 @@ export default function UserPage({ params: { userId } }: props) {
   const userPostsQuery = useGetUserPosts({ userId });
 
   const isError = userQuery.isError || userPostsQuery.isError;
-  const isLoading = userQuery.isLoading || userQuery.isPending || userPostsQuery.isLoading || userPostsQuery.isPending;
-
+  const isLoading = userQuery.isLoading || userQuery.isPending || userPostsQuery.isLoading || userPostsQuery.isPending || !curUserId;
   if (isError) return <ErrorCard />;
   if (isLoading) return <UserInfoHeaderSkeleton />;
 
   return (
     <div className="p-3 h-full overflow-y-auto pb-16">
       <UserInfoHeader user={{ ...userQuery.data, backgroundImage: null }} curUserId={curUserId} />
-      <Separator />
 
       <PostsContainer posts={userPostsQuery.data} curUserId={curUserId} />
     </div>

@@ -1,11 +1,12 @@
 "use client";
-import { useGetUserId } from "@/hooks/use-get-user-id";
-import { Home } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GoHomeFill, GoHome, GoPerson, GoPersonFill, GoBellFill, GoBell } from "react-icons/go";
+import { GoHomeFill, GoHome, GoPerson, GoPersonFill, GoBellFill, GoBell, GoSearch } from "react-icons/go";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import Searchbox from "./searchbox";
 
 const navItems = [
   {
@@ -42,7 +43,7 @@ export default function Navbar() {
   const curPathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-10">
+    <nav className="flex items-center gap-4 sm:gap-6 md:gap-10">
       {navItems.map(({ id, icon: Icon, activeIcon: ActiveIcon, name, path }) => {
         const isActive = curPathname === path && (curPathname.startsWith(path) || curPathname.startsWith("/users"));
         return (
@@ -60,9 +61,23 @@ export default function Navbar() {
           </NavbarTooltip>
         );
       })}
+      <SearchPopoverButton />
     </nav>
   );
 }
+
+const SearchPopoverButton = () => (
+  <Popover modal>
+    <PopoverTrigger asChild>
+      <Button variant="ghost" size="icon" className="text-2xl hover:opacity-70 lg:hidden">
+        <GoSearch />
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent>
+      <Searchbox />
+    </PopoverContent>
+  </Popover>
+);
 
 type props = {
   name: string;
