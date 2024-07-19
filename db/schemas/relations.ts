@@ -3,7 +3,7 @@ import { commentTable } from "./comment";
 import { postTable, postToTagTable, tagTable } from "./post";
 import { commentLikeTable, postLikeTable } from "./like";
 import { followingTable, userTable } from "./user";
-import { activityTable } from "./activity";
+import { notificationTable } from "./notification";
 
 export const userRelations = relations(userTable, ({ one, many }) => ({
   posts: many(postTable),
@@ -11,14 +11,14 @@ export const userRelations = relations(userTable, ({ one, many }) => ({
   postLikes: many(postLikeTable),
   commentLikes: many(commentLikeTable),
   following: many(followingTable),
-  activities: many(activityTable),
+  notifications: many(notificationTable),
 }));
 
 export const postRelations = relations(postTable, ({ one, many }) => ({
   user: one(userTable, { fields: [postTable.userId], references: [userTable.id] }),
   comments: many(commentTable),
   postLikes: many(postLikeTable),
-  activities: many(activityTable), // add post or edit the same post
+  notifications: many(notificationTable),
   postToTag: many(postToTagTable),
 }));
 
@@ -34,32 +34,30 @@ export const postToTagRelations = relations(postToTagTable, ({ one, many }) => (
 export const postLikeRelations = relations(postLikeTable, ({ one, many }) => ({
   user: one(userTable, { fields: [postLikeTable.userId], references: [userTable.id] }),
   post: one(postTable, { fields: [postLikeTable.postId], references: [postTable.id] }),
-  activities: one(activityTable), // only add like and the dislike action will remove the activity
+  notifications: one(notificationTable),
 }));
 
 export const commentLikeRelations = relations(commentLikeTable, ({ one, many }) => ({
   user: one(userTable, { fields: [commentLikeTable.userId], references: [userTable.id] }),
   comment: one(commentTable, { fields: [commentLikeTable.commentId], references: [commentTable.id] }),
-  activities: one(activityTable), // only add like and the dislike action will remove the activity
+  notifications: one(notificationTable),
 }));
 
 export const commentRelations = relations(commentTable, ({ one, many }) => ({
   user: one(userTable, { fields: [commentTable.userId], references: [userTable.id] }),
   post: one(postTable, { fields: [commentTable.postId], references: [postTable.id] }),
   likes: many(commentLikeTable),
-  activities: many(activityTable), // add comment or edit the same comment
+  notifications: many(notificationTable),
 }));
 
 export const followingRelations = relations(followingTable, ({ one, many }) => ({
   user: one(userTable, { fields: [followingTable.userId], references: [userTable.id] }),
-  activities: one(activityTable), // only add follow and the un follow action will remove the activity
 }));
 
-export const activityRelations = relations(activityTable, ({ one, many }) => ({
-  user: one(userTable, { fields: [activityTable.userId, activityTable.ownedUserId], references: [userTable.id, userTable.id] }),
-  posts: one(postTable, { fields: [activityTable.postId], references: [postTable.id] }),
-  comment: one(commentTable, { fields: [activityTable.commentId], references: [commentTable.id] }),
-  postLike: one(postLikeTable, { fields: [activityTable.postLikeId], references: [postLikeTable.id] }),
-  commentLike: one(commentLikeTable, { fields: [activityTable.commentLikeId], references: [commentLikeTable.id] }),
-  following: one(followingTable, { fields: [activityTable.followingId], references: [followingTable.id] }),
+export const notificationRelations = relations(notificationTable, ({ one, many }) => ({
+  user: one(userTable, { fields: [notificationTable.userId, notificationTable.toUserId], references: [userTable.id, userTable.id] }),
+  posts: one(postTable, { fields: [notificationTable.postId], references: [postTable.id] }),
+  comment: one(commentTable, { fields: [notificationTable.commentId], references: [commentTable.id] }),
+  postLike: one(postLikeTable, { fields: [notificationTable.postLikeId], references: [postLikeTable.id] }),
+  commentLike: one(commentLikeTable, { fields: [notificationTable.commentLikeId], references: [commentLikeTable.id] }),
 }));

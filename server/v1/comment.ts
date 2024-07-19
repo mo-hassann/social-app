@@ -10,15 +10,19 @@ import { commentTable, editCommentSchema } from "@/db/schemas/comment";
 import { commentLikeTable } from "@/db/schemas/like";
 import { verifyAuth } from "@hono/auth-js";
 import { format } from "date-fns";
+import { notificationTable } from "@/db/schemas/notification";
 
 const app = new Hono()
-  .get("/", zValidator("query", z.object({ userId: z.string().optional(), postId: z.string() })), async (c) => {
-    const { userId, postId } = c.req.valid("query");
+  .get("/", verifyAuth(), zValidator("query", z.object({ postId: z.string() })), async (c) => {
     try {
+      const { postId } = c.req.valid("query");
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
       const curCommentLike = db
         .select()
         .from(commentLikeTable)
-        .where(userId ? and(eq(commentLikeTable.userId, userId), eq(commentLikeTable.commentId, commentTable.id)) : isNull(commentLikeTable.userId));
+        .where(and(eq(commentLikeTable.userId, curUserId), eq(commentLikeTable.commentId, commentTable.id)));
 
       const data = await db
         .select({
@@ -41,12 +45,12 @@ const app = new Hono()
         // algorism to order the comments
         .orderBy(asc(commentTable.likeCount), asc(commentTable.createdAt));
 
-      type dataT = ((typeof data)[0] & { children: typeof data; level: number })[];
-
       /* 
         the prepense of this logic below is to format the comments to be in a tree where a comment can have a children and the children can have 
         also children comments and so on
-      */
+        */
+
+      type dataT = ((typeof data)[0] & { children: typeof data; level: number })[];
 
       // format the comments to tree
       const createTree = (elements: dataT, level: number): dataT => {
@@ -85,16 +89,26 @@ const app = new Hono()
       return c.json({ message: "something wrong when trying to get posts", cause: error.message }, 400);
     }
   })
-  .post("/", zValidator("json", newCommentFormSchema.and(z.object({ userId: z.string(), postId: z.string(), parentCommentId: z.string().nullable() }))), async (c) => {
+  .post("/", verifyAuth(), zValidator("json", newCommentFormSchema.and(z.object({ postId: z.string(), parentCommentId: z.string().nullable() }))), async (c) => {
     try {
       const values = c.req.valid("json");
-
-      await db.insert(commentTable).values(values);
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
 
       await db
+        .insert(commentTable)
+        .values({ ...values, userId: curUserId })
+        .returning({ id: commentTable.id });
+
+      // update the comment count in the post
+      const [{ userId: postOwnerUserId }] = await db
         .update(postTable)
         .set({ commentCount: sql`${postTable.commentCount} + 1` })
-        .where(eq(postTable.id, values.postId));
+        .where(eq(postTable.id, values.postId))
+        .returning({ userId: postTable.userId });
+
+      // send notification to the post owner user
+      await db.insert(notificationTable).values({ userId: curUserId, toUserId: postOwnerUserId, notificationName: "NEW_COMMENT", postId: values.postId }).onConflictDoNothing();
 
       return c.json({});
     } catch (error: any) {

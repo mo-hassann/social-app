@@ -1,5 +1,5 @@
 import { Input } from "../../ui/input";
 
 export default function Searchbox() {
-  return <Input className="rounded-full mx-auto w-[250px]" placeholder="search..." />;
+  return <Input className="rounded-full w-[250px] hidden lg:block" placeholder="search..." />;
 }

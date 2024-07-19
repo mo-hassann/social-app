@@ -20,8 +20,13 @@ export const signUpFormSchema = z
   })
   .refine((check) => check.password === check.confirmPassword, { message: "passwords must mach", path: ["confirmPassword"] });
 
-export const newPostFormSchema = createInsertSchema(postTable).pick({ content: true, image: true });
-export const newCommentFormSchema = createInsertSchema(commentTable).pick({ content: true });
+export const newPostFormSchema = createInsertSchema(postTable, {
+  content: z.string().min(3, "please add at least 3 chars."),
+}).pick({ content: true, image: true });
+
+export const newCommentFormSchema = createInsertSchema(commentTable, {
+  content: z.string().min(3, "please add at least 3 chars."),
+}).pick({ content: true });
 
 export const addPostLikeSchema = createInsertSchema(postLikeTable).omit({ id: true });
 export const addCommentLikeSchema = createInsertSchema(commentLikeTable).omit({ id: true });

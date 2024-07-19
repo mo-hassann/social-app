@@ -5,11 +5,12 @@ import db from "@/db";
 import { postTable, postToTagTable, tagSchema, tagTable, editPostSchema } from "@/db/schemas/post";
 import { and, count, desc, eq, exists, isNotNull, isNull, sql, sum } from "drizzle-orm";
 import { newPostFormSchema } from "@/validators";
-import { userTable } from "@/db/schemas/user";
+import { followingTable, userTable } from "@/db/schemas/user";
 import { commentTable } from "@/db/schemas/comment";
 import { postLikeTable } from "@/db/schemas/like";
 import { verifyAuth } from "@hono/auth-js";
 import { format } from "date-fns";
+import { notificationInsertSchema, notificationTable } from "@/db/schemas/notification";
 
 const app = new Hono()
   .get("/", verifyAuth(), async (c) => {
@@ -108,6 +109,14 @@ const app = new Hono()
         .values({ ...values, userId: curUserId })
         .returning({ id: postTable.id, content: postTable.content })
         .then((table) => table[0]);
+
+      const curUserFollowers = await db.select({ id: followingTable.followedBy }).from(followingTable).where(eq(followingTable.userId, curUserId));
+
+      type notificationT = z.infer<typeof notificationInsertSchema>;
+      const notifications: notificationT[] = curUserFollowers.map(({ id }) => ({ userId: curUserId, toUserId: id, postId: data.id, notificationName: "NEW_POST" }));
+
+      // send notification to all the followers
+      await db.insert(notificationTable).values(notifications);
 
       return c.json({ data });
     } catch (error: any) {

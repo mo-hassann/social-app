@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { newPostFormSchema } from "@/validators";
 import { Textarea } from "@/components/ui/textarea";
+import { SendHorizonal } from "lucide-react";
+import UserAvatar from "@/components/user-avatar";
+import Spinner from "@/components/spinner";
 
 const FormSchema = newPostFormSchema;
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -15,10 +18,14 @@ type FormSchemaType = z.infer<typeof FormSchema>;
 type props = {
   onSubmit: (values: FormSchemaType) => void;
   defaultValues: FormSchemaType;
-  disabled: boolean;
+  isPending: boolean;
+  curUser?: {
+    name?: string;
+    image?: string;
+  };
 };
 
-export default function NewPostForm({ defaultValues, onSubmit, disabled }: props) {
+export default function NewPostForm({ defaultValues, onSubmit, isPending, curUser }: props) {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues,
@@ -26,22 +33,24 @@ export default function NewPostForm({ defaultValues, onSubmit, disabled }: props
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Textarea disabled={disabled} placeholder="example@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button disabled={disabled} type="submit">
-          Submit
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3 bg-card p-3.5 rounded-md">
+        <div className="flex items-center gap-2">
+          <UserAvatar className="size-12" fallbackText={curUser?.name || undefined} image={curUser?.image || undefined} />
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <Textarea className="rounded-lg bg-input" disabled={isPending} placeholder="what's in your mind?" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+        <Button className="place-self-end px-9" disabled={isPending || !form.formState.isDirty || !form.formState.isValid} type="submit">
+          {isPending && <Spinner className="mr-1 size-5" />}
+          Post
         </Button>
       </form>
     </Form>

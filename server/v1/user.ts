@@ -69,6 +69,56 @@ const app = new Hono()
       return c.json({});
     }
   })
+  .get("/", verifyAuth(), async (c) => {
+    try {
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const [data] = await db
+        .select({
+          id: userTable.id,
+          name: userTable.name,
+          username: userTable.userName,
+          email: userTable.email,
+          bio: userTable.bio,
+          image: userTable.image,
+          dateOfBirth: userTable.dateOfBirth,
+          followersCount: userTable.followersCount,
+          followingCount: userTable.followingCount,
+        })
+        .from(userTable)
+        .leftJoin(followingTable, eq(followingTable.userId, userTable.id))
+        .where(eq(userTable.id, curUserId));
+
+      const user = { ...data };
+
+      return c.json({ data: user });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
+    }
+  })
+  .get("/following", verifyAuth(), async (c) => {
+    try {
+      const auth = c.get("authUser");
+      const curUserId = auth.session.user?.id as string;
+
+      const data = await db
+        .select({
+          id: userTable.id,
+          name: userTable.name,
+          username: userTable.userName,
+          email: userTable.email,
+          image: userTable.image,
+        })
+        .from(userTable)
+        .leftJoin(followingTable, eq(followingTable.userId, userTable.id))
+        .where(eq(followingTable.followedBy, curUserId));
+
+      return c.json({ data });
+    } catch (error: any) {
+      return c.json({ message: "something went wrong", cause: error.message }, 400);
+    }
+  })
   .get("/:id", verifyAuth(), zValidator("param", z.object({ id: z.string() })), async (c) => {
     try {
       const { id: userId } = c.req.valid("param");

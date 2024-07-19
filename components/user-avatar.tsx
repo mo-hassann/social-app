@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 type props = {
   image?: string;
@@ -8,9 +9,9 @@ type props = {
 
 export default function UserAvatar({ fallbackText, image, className }: props) {
   return (
-    <Avatar className={className}>
+    <Avatar className={cn("bg-muted", className)}>
       <AvatarImage src={image} alt={fallbackText} />
-      <AvatarFallback>{fallbackText?.slice(0, 2).toUpperCase()}</AvatarFallback>
+      <AvatarFallback className="bg-inherit">{fallbackText?.slice(0, 2).toUpperCase()}</AvatarFallback>
     </Avatar>
   );
 }

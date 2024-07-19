@@ -4,6 +4,9 @@ import useGetUserPosts from "@/client/post/api/use-get-user-posts";
 import PostsContainer from "@/client/post/components/posts-container";
 import useGetUser from "@/client/user/api/use-get-user";
 import UserInfoHeader from "@/client/user/components/user-info-header";
+import ErrorCard from "@/components/error-card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useGetUserId } from "@/hooks/use-get-user-id";
 
 type props = { params: { userId: string } };
@@ -13,20 +16,31 @@ export default function UserPage({ params: { userId } }: props) {
   const userQuery = useGetUser({ userId });
   const userPostsQuery = useGetUserPosts({ userId });
 
-  const isError = userPostsQuery.isError || userQuery.isError;
-  const isLoading = userQuery.isLoading;
-  const isPending = userQuery.isPending;
+  const isError = userQuery.isError || userPostsQuery.isError;
+  const isLoading = userQuery.isLoading || userQuery.isPending || userPostsQuery.isLoading || userPostsQuery.isPending;
 
-  if (isError) return <div>error</div>;
-  if (isLoading) return <div>loading...</div>;
-  if (isPending) return <div>pending</div>;
-
-  const user = userQuery.data;
+  if (isError) return <ErrorCard />;
+  if (isLoading) return <UserInfoHeaderSkeleton />;
 
   return (
     <div className="p-3 h-full overflow-y-auto pb-16">
-      <UserInfoHeader user={{ ...user, backgroundImage: null }} curUserId={curUserId} />
-      {!userPostsQuery.isLoading && !userPostsQuery.isPending && <PostsContainer posts={userPostsQuery.data} curUserId={curUserId} />}
+      <UserInfoHeader user={{ ...userQuery.data, backgroundImage: null }} curUserId={curUserId} />
+      <Separator />
+
+      <PostsContainer posts={userPostsQuery.data} curUserId={curUserId} />
     </div>
   );
 }
+
+const UserInfoHeaderSkeleton = () => (
+  <div className="space-y-2">
+    <Skeleton className="w-full h-52 rounded-md" />
+    <div className="flex items-center gap-3 w-full">
+      <Skeleton className="size-24 rounded-full flex-shrink-0" />
+      <div className="w-full space-y-2">
+        <Skeleton className="w-7/12 h-8 rounded-md" />
+        <Skeleton className="w-24 h-8 rounded-md" />
+      </div>
+    </div>
+  </div>
+);
