@@ -102,7 +102,7 @@ export default function Notification({ notification }: props) {
           title="new follower to your account"
           icon={FaUserGroup}
           isRead={notification.isRead}
-          notificationLink={`/posts/${notification.userId}`}
+          notificationLink={`/users/${notification.userId}`}
           description={
             <>
               The user
