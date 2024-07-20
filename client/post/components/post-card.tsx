@@ -72,7 +72,7 @@ function renderContentWithTags(text: string) {
   // debugger;
   return text.split(regex).map((part, index) =>
     index % 2 === 1 ? (
-      <Link className="text-blue-500 hover:underline" href={`?tag=${part}`} key={index}>
+      <Link className="text-blue-500 hover:underline" href={`/search?q=${part}`} key={index}>
         #{part}
       </Link>
     ) : (
