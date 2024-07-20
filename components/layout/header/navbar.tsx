@@ -3,10 +3,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GoHomeFill, GoHome, GoPerson, GoPersonFill, GoBellFill, GoBell, GoSearch } from "react-icons/go";
+import { RiGroupFill, RiGroupLine } from "react-icons/ri";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import Searchbox from "./searchbox";
+import { useGetUserId } from "@/hooks/use-get-user-id";
+import useIsNewNotification from "@/client/notification/api/use-is-new-notification";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const navItems = [
   {
@@ -19,8 +23,8 @@ const navItems = [
   {
     id: 2,
     name: "following",
-    icon: GoPerson,
-    activeIcon: GoPersonFill,
+    icon: RiGroupLine,
+    activeIcon: RiGroupFill,
     path: "/following",
   },
   {
@@ -35,20 +39,31 @@ const navItems = [
     name: "Profile",
     icon: GoPerson,
     activeIcon: GoPersonFill,
-    path: "/profile",
+    path: "@MY_PROFILE",
   },
 ];
 
 export default function Navbar() {
   const curPathname = usePathname();
+  const curUserId = useGetUserId();
+  const isNewNotificationQuery = useIsNewNotification();
+
+  const isLoading = !curUserId;
+
+  if (isLoading) return <NavbarSkeleton />;
 
   return (
     <nav className="flex items-center gap-4 sm:gap-6 md:gap-10">
       {navItems.map(({ id, icon: Icon, activeIcon: ActiveIcon, name, path }) => {
-        const isActive = curPathname === path && (curPathname.startsWith(path) || curPathname.startsWith("/users"));
+        const profilePath = `/users/${curUserId}`;
+
+        const linkHref = path === "@MY_PROFILE" ? profilePath : path;
+
+        const isActive = curPathname === linkHref && curPathname.startsWith(linkHref);
+
         return (
           <NavbarTooltip key={id} name={name}>
-            <Link className="text-2xl hover:opacity-70" href={path}>
+            <Link className="text-2xl hover:opacity-70 relative" href={linkHref}>
               {isActive ? (
                 <div className="text-primary relative">
                   <ActiveIcon />
@@ -57,6 +72,7 @@ export default function Navbar() {
               ) : (
                 <Icon />
               )}
+              {path === "/notifications" && isNewNotificationQuery.data && <div className="absolute -bottom-0.5 -right-2.5 size-2 rounded-full bg-emerald-500" />}
             </Link>
           </NavbarTooltip>
         );
@@ -96,3 +112,5 @@ const NavbarTooltip = ({ name, children }: props) => {
     </TooltipProvider>
   );
 };
+
+const NavbarSkeleton = () => <Skeleton className="w-36 h-10 rounded-md" />;

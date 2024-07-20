@@ -12,6 +12,7 @@ import { generateRandomUserName } from "@/lib";
 import { z } from "zod";
 import { verifyAuth } from "@hono/auth-js";
 import { format } from "date-fns";
+import { notificationTable } from "@/db/schemas/notification";
 
 const app = new Hono()
   .post("/register", zValidator("json", signUpFormSchema), async (c) => {
@@ -69,6 +70,15 @@ const app = new Hono()
       return c.json({});
     }
   })
+  .post("/sign-out", async (c) => {
+    try {
+      await signOut();
+      return c.json({});
+    } catch (error: any) {
+      return c.json({ message: "field to sign out", cause: error?.message });
+    }
+  })
+
   .get("/", verifyAuth(), async (c) => {
     try {
       const auth = c.get("authUser");
@@ -216,6 +226,9 @@ const app = new Hono()
           .update(userTable)
           .set({ followingCount: sql`${userTable.followingCount} - 1` })
           .where(eq(userTable.id, curUserId));
+
+        // send notification
+        await db.insert(notificationTable).values({ userId: curUserId, toUserId: userId, notificationName: "NEW_FOLLOWER" }).onConflictDoNothing();
       } else {
         await db.insert(followingTable).values({ userId, followedBy: curUserId });
         await db

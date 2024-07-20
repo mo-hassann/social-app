@@ -16,7 +16,7 @@ export default function UserFollowingMainCard() {
 
   if (isError) return;
   if (isLoading) return <UserFollowingMainCardSkeleton />;
-  if (userFollowingQuery.data.length === 0) return <NoDataCard />;
+  if (userFollowingQuery.data.length === 0) return;
 
   return (
     <div className="w-[320px] mx-auto max-w-96 bg-card rounded-md overflow-hidden py-3 px-5">

@@ -10,6 +10,8 @@ import { newCommentFormSchema } from "@/validators";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { SendHorizonal } from "lucide-react";
+import UserAvatar from "@/components/user-avatar";
+import type { AdapterUser } from "@auth/core/adapters";
 
 const FormSchema = newCommentFormSchema;
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -19,9 +21,10 @@ type props = {
   defaultValues: FormSchemaType;
   disabled: boolean;
   className?: string;
+  curUser: AdapterUser;
 };
 
-export default function NewCommentForm({ defaultValues, onSubmit, disabled, className }: props) {
+export default function NewCommentForm({ curUser, defaultValues, onSubmit, disabled, className }: props) {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues,
@@ -29,21 +32,24 @@ export default function NewCommentForm({ defaultValues, onSubmit, disabled, clas
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-6 flex items-center gap-3", className)}>
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormControl>
-                <Textarea disabled={disabled} placeholder="example@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button disabled={disabled} size="icon" type="submit">
-          <SendHorizonal />
+      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col gap-2", className)}>
+        <div className="flex gap-1.5 p-1">
+          <UserAvatar className="size-10" fallbackText={curUser.name || undefined} image={curUser.image || undefined} />
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <Textarea disabled={disabled} placeholder="example@example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <Button className="self-end" disabled={disabled} size="sm" type="submit">
+          Comment
         </Button>
       </form>
     </Form>

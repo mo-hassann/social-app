@@ -20,7 +20,7 @@ export default function UserSuggestionMainCard() {
 
   return (
     <div className="w-[320px] mx-auto max-w-96 bg-card rounded-md overflow-hidden py-3 px-5">
-      <h2 className="text-xl mb-3 pl-3">Your following</h2>
+      <h2 className="text-xl mb-3 pl-3">Suggested For You</h2>
       <Separator />
       <div className="space-y-1 my-2">
         {userSuggestionQuery.data.map((user) => (

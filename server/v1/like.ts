@@ -39,7 +39,9 @@ const app = new Hono()
           .returning({ userId: postTable.userId });
 
         // send notification to the post owner user
-        await db.insert(notificationTable).values({ userId: curUserId, toUserId: postOwnerUserId, notificationName: "NEW_POST_LIKE", postId }).onConflictDoNothing();
+        if (curUserId !== postOwnerUserId) {
+          await db.insert(notificationTable).values({ userId: curUserId, toUserId: postOwnerUserId, notificationName: "NEW_POST_LIKE", postId }).onConflictDoNothing();
+        }
       }
 
       // await db.execute(sql`insert into ${postLikeTable} (${postLikeTable.postId}, ${postLikeTable.userId}) values (${values.postId},${values.userId}) on conflict do update`);
@@ -76,7 +78,9 @@ const app = new Hono()
           .returning({ postId: commentTable.postId, userId: commentTable.userId });
 
         // send notification to the post owner user
-        await db.insert(notificationTable).values({ userId: curUserId, toUserId: commentOwnerUserId, notificationName: "NEW_COMMENT_LIKE", postId }).onConflictDoNothing();
+        if (curUserId !== commentOwnerUserId) {
+          await db.insert(notificationTable).values({ userId: curUserId, toUserId: commentOwnerUserId, notificationName: "NEW_COMMENT_LIKE", postId }).onConflictDoNothing();
+        }
       }
 
       return c.json({});

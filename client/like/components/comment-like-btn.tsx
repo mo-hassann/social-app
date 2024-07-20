@@ -2,14 +2,16 @@ import { Button } from "@/components/ui/button";
 import { ThumbsUp } from "lucide-react";
 import { useState } from "react";
 import useToggleCommentLike from "../api/use-toggle-comment-like";
+import { cn } from "@/lib/utils";
 
 type props = {
   commentId: string;
   likeCount: number;
   isLiked: boolean;
+  className?: string;
 };
 
-export default function CommentLikeBtn({ commentId, likeCount, isLiked }: props) {
+export default function CommentLikeBtn({ commentId, likeCount, isLiked, className }: props) {
   const toggleLikeMutation = useToggleCommentLike();
   const [optimisticLike, setOptimisticLike] = useState({ isLiked, likeCount: Number(likeCount) });
 
@@ -29,8 +31,8 @@ export default function CommentLikeBtn({ commentId, likeCount, isLiked }: props)
   };
 
   return (
-    <Button disabled={isPending} size="sm" variant={optimisticLike.isLiked ? "default" : "outline"} onClick={onClick}>
-      {optimisticLike.likeCount} <ThumbsUp className="ml-2" size={16} />
+    <Button className={cn(className)} disabled={isPending} size="sm" variant={optimisticLike.isLiked ? "default" : "outline"} onClick={onClick}>
+      {optimisticLike.likeCount} <ThumbsUp className="ml-1" size={12} />
     </Button>
   );
 }

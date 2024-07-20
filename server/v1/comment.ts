@@ -38,12 +38,11 @@ const app = new Hono()
         .leftJoin(commentLikeTable, eq(commentLikeTable.commentId, commentTable.id))
 
         .groupBy(commentTable.id, userTable.id, userTable.name, userTable.userName, userTable.image, commentLikeTable.userId)
-        // algorism to order the comments
-        .orderBy(asc(commentTable.likeCount), asc(commentTable.createdAt));
+        .orderBy(asc(commentTable.createdAt));
 
       /* 
-        the prepense of this logic below is to format the comments to be in a tree where a comment can have a children and the children can have 
-        also children comments and so on
+        the prepense of this logic below is to format the comments to be in a tree where a comment can have a children and the children can also have 
+        children comments and so on
         */
 
       type dataT = ((typeof data)[0] & { children: typeof data; level: number })[];
@@ -104,7 +103,9 @@ const app = new Hono()
         .returning({ userId: postTable.userId });
 
       // send notification to the post owner user
-      await db.insert(notificationTable).values({ userId: curUserId, toUserId: postOwnerUserId, notificationName: "NEW_COMMENT", postId: values.postId }).onConflictDoNothing();
+      if (curUserId !== postOwnerUserId) {
+        await db.insert(notificationTable).values({ userId: curUserId, toUserId: postOwnerUserId, notificationName: "NEW_COMMENT", postId: values.postId }).onConflictDoNothing();
+      }
 
       return c.json({});
     } catch (error: any) {

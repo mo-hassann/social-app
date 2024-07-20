@@ -22,7 +22,7 @@ export default function UserMainCard() {
           <span className="text-xl">{followingCount}</span>
           <span className="text-muted-foreground text-sm">Following</span>
         </div>
-        <UserAvatar className="size-20 -my-7 text-2xl" image={image || undefined} fallbackText={username} />
+        <UserAvatar className="size-[90px] -my-7 text-2xl border-[5px] border-card" image={image || undefined} fallbackText={username} />
         <div className="flex flex-col items-center mt-3">
           <span className="text-xl">{followersCount}</span>
           <span className="text-muted-foreground text-sm">Followers</span>
@@ -36,7 +36,7 @@ export default function UserMainCard() {
       <Separator />
       <div className="flex items-center">
         <Button className="w-full m-3 py-6" asChild>
-          <Link href="/profile">My Profile</Link>
+          <Link href={`/users/${id}`}>My Profile</Link>
         </Button>
       </div>
     </div>

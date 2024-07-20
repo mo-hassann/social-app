@@ -34,13 +34,11 @@ export const postToTagRelations = relations(postToTagTable, ({ one, many }) => (
 export const postLikeRelations = relations(postLikeTable, ({ one, many }) => ({
   user: one(userTable, { fields: [postLikeTable.userId], references: [userTable.id] }),
   post: one(postTable, { fields: [postLikeTable.postId], references: [postTable.id] }),
-  notifications: one(notificationTable),
 }));
 
 export const commentLikeRelations = relations(commentLikeTable, ({ one, many }) => ({
   user: one(userTable, { fields: [commentLikeTable.userId], references: [userTable.id] }),
   comment: one(commentTable, { fields: [commentLikeTable.commentId], references: [commentTable.id] }),
-  notifications: one(notificationTable),
 }));
 
 export const commentRelations = relations(commentTable, ({ one, many }) => ({
@@ -58,6 +56,4 @@ export const notificationRelations = relations(notificationTable, ({ one, many }
   user: one(userTable, { fields: [notificationTable.userId, notificationTable.toUserId], references: [userTable.id, userTable.id] }),
   posts: one(postTable, { fields: [notificationTable.postId], references: [postTable.id] }),
   comment: one(commentTable, { fields: [notificationTable.commentId], references: [commentTable.id] }),
-  postLike: one(postLikeTable, { fields: [notificationTable.postLikeId], references: [postLikeTable.id] }),
-  commentLike: one(commentLikeTable, { fields: [notificationTable.commentLikeId], references: [commentLikeTable.id] }),
 }));

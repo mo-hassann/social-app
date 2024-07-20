@@ -1,65 +1,30 @@
-import { Button } from "@/components/ui/button";
-import { notificationSelectSchema } from "@/db/schemas/notification";
-import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import type { IconType } from "react-icons/lib";
+import useSetReadNotification from "../api/set-is-read";
 
 type props = {
-  notification: {
-    id: string;
-    userName: string | null;
-    userId: string;
-    notificationName: "NEW_POST" | "NEW_COMMENT" | "NEW_POST_LIKE" | "NEW_COMMENT_LIKE" | "NEW_FOLLOWER";
-    postId: string | null;
-    commentId: string | null;
-    postLikeId: string | null;
-    commentLikeId: string | null;
-  };
+  id: string;
+  icon: IconType;
+  notificationLink: string;
+  title: string;
+  description: React.ReactNode;
+  isRead: boolean;
 };
 
-export default function NotificationItem({ notification }: props) {
-  const router = useRouter();
-  switch (notification.notificationName) {
-    case "NEW_POST":
-      return (
-        <Button className="w-full h-20 bg-muted/30" variant="ghost" onClick={() => router.push(`/posts/${notification.postId}`)}>
-          The user
-          <Button variant="link" onClick={() => router.push(`/users/${notification.userId}`)}>
-            {notification.userName}
-          </Button>
-          created new post
-        </Button>
-      );
-    case "NEW_COMMENT":
-      return (
-        <Button className="w-full h-20 bg-muted/30" variant="ghost" onClick={() => router.push(`/posts/${notification.postId}`)}>
-          The user
-          <Button variant="link" onClick={() => router.push(`/users/${notification.userId}`)}>
-            {notification.userName}
-          </Button>
-          created new comment in your post
-        </Button>
-      );
-    case "NEW_POST_LIKE":
-      return (
-        <Button className="w-full h-20 bg-muted/30" variant="ghost" onClick={() => router.push(`/posts/${notification.postId}`)}>
-          The user
-          <Button variant="link" onClick={() => router.push(`/users/${notification.userId}`)}>
-            {notification.userName}
-          </Button>
-          likes you post
-        </Button>
-      );
-    case "NEW_COMMENT_LIKE":
-      return (
-        <Button className="w-full h-20 bg-muted/30" variant="ghost" onClick={() => router.push(`/posts/${notification.postId}`)}>
-          The user
-          <Button variant="link" onClick={() => router.push(`/users/${notification.userId}`)}>
-            {notification.userName}
-          </Button>
-          likes your comment
-        </Button>
-      );
+export default function NotificationItem({ id, description, notificationLink, title, isRead, icon: Icon }: props) {
+  const notificationReadMutation = useSetReadNotification();
 
-    default:
-      break;
-  }
+  return (
+    <Link href={notificationLink} onClick={() => !isRead && notificationReadMutation.mutate({ id })} className={cn("w-full h-20 flex items-center gap-2 p-3 rounded-md bg-primary/15 hover:bg-primary/25", isRead && "bg-card/15 hover:bg-card/25")}>
+      <div className="bg-primary/40 rounded-full flex items-center justify-center size-12">
+        <Icon />
+      </div>
+      <div>
+        <h3 className="text-lg capitalize">{title}</h3>
+        <p className="text-muted-foreground text-sm">{description}</p>
+      </div>
+      {!isRead && <div className="size-2 rounded-full bg-primary ml-auto shrink-0" />}
+    </Link>
+  );
 }

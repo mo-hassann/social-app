@@ -33,7 +33,7 @@ type props = {
 };
 
 export default function CommentCard({ comment, curUserId }: props) {
-  const [isHide, setIsHide] = useState<boolean>(comment.level === 1 ? false : true); // keep the parent comment without hide
+  const [isHide, setIsHide] = useState<boolean>(false);
   const setReplayComment = useReplayComment((state) => state.setReplayComment);
 
   const onReplay = () => {
@@ -42,48 +42,45 @@ export default function CommentCard({ comment, curUserId }: props) {
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        {comment.children && comment.children.length > 0 && (
-          <Button variant="ghost" size="icon" onClick={() => setIsHide((curState) => !curState)}>
-            {isHide ? <ArrowDown /> : <ArrowUp />}
-          </Button>
-        )}
+      <div className="flex items-center gap-2" style={{ marginLeft: 50 * ((comment.level ?? 0) - 1) }}>
+        <div className="flex flex-col gap-1 justify-start items-center h-full">
+          <Avatar>
+            <AvatarImage src={comment.userImage || undefined} alt={comment.username} />
+            <AvatarFallback>{comment.user?.slice(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          {comment.children && comment.children.length > 0 && (
+            <Button className="rounded-full size-8" variant="ghost" size="icon" onClick={() => setIsHide((curState) => !curState)}>
+              {isHide ? <ArrowDown size={16} /> : <ArrowUp size={16} />}
+            </Button>
+          )}
+        </div>
 
-        <Card className={"mt-3"} style={{ marginLeft: 20 * (comment.level || 1) }}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarImage src={comment.userImage || undefined} alt={comment.username} />
-                  <AvatarFallback>{comment.user?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-
-                <div className="flex flex-col leading-4">
-                  <p className="capitalize">{comment.user}</p>
-                  <Button className="p-0 m-0 h-auto" variant="link" asChild>
-                    <Link href={`/users/${comment.userId}`}>@{comment.username}</Link>
-                  </Button>
-                </div>
-                <p className="text-muted-foreground text-xs flex items-center">
-                  <Dot />
-                  {comment.createdAt && formatDistance(new Date(comment.createdAt as string), new Date())}
-                </p>
-              </div>
-              {comment.userId === curUserId && <CommentActions commentId={comment.id} />}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <h5>{comment.content}</h5>
-          </CardContent>
-          <CardFooter className="flex items-center">
+        <div className="bg-card/60 rounded-md w-full py-1.5 px-2">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <CommentLikeBtn isLiked={comment.isLiked} likeCount={comment.likeCount} commentId={comment.id} />
-              <Button size="sm" variant="outline" onClick={onReplay}>
-                replay <ReplyAll className="ml-2" size={16} />
-              </Button>
+              <div className="flex flex-col leading-4">
+                <p className="capitalize text-muted-foreground">{comment.user}</p>
+                <Button size="sm" className="p-0 m-0 h-auto text-xs" variant="link" asChild>
+                  <Link href={`/users/${comment.userId}`}>@{comment.username}</Link>
+                </Button>
+              </div>
+              <p className="text-muted-foreground text-[.6rem] flex items-center">
+                <Dot />
+                {comment.createdAt && formatDistance(new Date(comment.createdAt as string), new Date())}
+              </p>
             </div>
-          </CardFooter>
-        </Card>
+            {comment.userId === curUserId && <CommentActions commentId={comment.id} />}
+          </div>
+
+          <p className="my-2">{comment.content}</p>
+
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <CommentLikeBtn className="p-1.5 text-xs w-12 h-7" isLiked={comment.isLiked} likeCount={comment.likeCount} commentId={comment.id} />
+            <Button className="p-1.5 text-xs h-7" size="sm" variant="outline" onClick={onReplay}>
+              replay <ReplyAll className="ml-1" size={12} />
+            </Button>
+          </div>
+        </div>
       </div>
       {!isHide && (
         <>

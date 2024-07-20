@@ -15,26 +15,26 @@ import SuggestionSection from "./_components/suggestion-section";
 export default function FollowingPage() {
   return (
     <div className="space-y-3">
-      <Tabs defaultValue="following" className="w-full">
+      <Tabs defaultValue="suggestion" className="w-full">
         <TabsList className="w-full mb-4">
+          <TabsTrigger className="w-full" value="suggestion">
+            suggestion
+          </TabsTrigger>
           <TabsTrigger className="w-full" value="following">
             following
           </TabsTrigger>
           <TabsTrigger className="w-full" value="followers">
             followers
           </TabsTrigger>
-          <TabsTrigger className="w-full" value="suggestion">
-            suggestion
-          </TabsTrigger>
         </TabsList>
+        <TabsContent value="suggestion">
+          <SuggestionSection />
+        </TabsContent>
         <TabsContent value="following">
           <FollowingSection />
         </TabsContent>
         <TabsContent value="followers">
           <FollowersSection />
-        </TabsContent>
-        <TabsContent value="suggestion">
-          <SuggestionSection />
         </TabsContent>
       </Tabs>
     </div>

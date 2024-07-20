@@ -1,22 +1,15 @@
-import { signOut } from "@/auth";
-import { Button } from "@/components/ui/button";
-import { DEFAULT_SIGN_OUT_REDIRECT } from "@/routes";
-import { redirect } from "next/navigation";
+"use client";
+import useSignOut from "../api/use-sign-out";
 
-export default function SignOutBtn() {
+type props = {
+  children: React.ReactNode;
+};
+
+export default function SignOutBtn({ children }: props) {
+  const signOutMutation = useSignOut();
   return (
-    <form
-      action={async () => {
-        "use server";
-        try {
-          await signOut();
-          redirect(DEFAULT_SIGN_OUT_REDIRECT);
-        } catch (error) {
-          console.log(error);
-        }
-      }}
-    >
-      <Button>sign out</Button>
-    </form>
+    <button className="contents" onClick={() => signOutMutation.mutate()}>
+      {children}
+    </button>
   );
 }

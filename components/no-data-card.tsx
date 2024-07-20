@@ -1,5 +1,5 @@
 import React from "react";
 
 export default function NoDataCard() {
-  return <div>no data here</div>;
+  return <div className="mt-4 w-full text-center">no data here</div>;
 }
