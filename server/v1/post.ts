@@ -3,20 +3,21 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import db from "@/db";
 import { postTable, postToTagTable, tagSchema, tagTable, editPostSchema } from "@/db/schemas/post";
-import { and, count, desc, eq, exists, isNotNull, isNull, sql, sum } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { newPostFormSchema } from "@/validators";
 import { followingTable, userTable } from "@/db/schemas/user";
-import { commentTable } from "@/db/schemas/comment";
+
 import { postLikeTable } from "@/db/schemas/like";
 import { verifyAuth } from "@hono/auth-js";
-import { format } from "date-fns";
+
 import { notificationInsertSchema, notificationTable } from "@/db/schemas/notification";
 
 const app = new Hono()
-  .get("/", verifyAuth(), async (c) => {
+  .get("/", verifyAuth(), zValidator("query", z.object({ searchQuery: z.string().optional().default("") })), async (c) => {
     try {
       const auth = c.get("authUser");
       const curUserId = auth.session.user?.id as string;
+      const { searchQuery } = c.req.valid("query");
 
       const data = await db
         .select({
@@ -24,7 +25,6 @@ const app = new Hono()
           content: postTable.content,
           image: postTable.image,
           createdAt: postTable.createdAt,
-          tags: sql<z.infer<typeof tagSchema>[] | null | [null]>`(json_agg(${tagTable}))`,
           userId: postTable.userId,
           user: userTable.name,
           username: userTable.userName,
@@ -36,13 +36,11 @@ const app = new Hono()
         .from(postTable)
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
         .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
-        .leftJoin(postLikeTable, eq(postLikeTable.postId, postTable.id))
-        .leftJoin(tagTable, eq(tagTable.id, postToTagTable.tagId))
-
+        .leftJoin(postLikeTable, and(eq(postLikeTable.postId, postTable.id), eq(postLikeTable.userId, curUserId)))
+        .where(sql`(${postTable.content} ~ ${searchQuery})`)
         .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image, postLikeTable.userId)
         // algorism to order the posts
-        .orderBy(eq(userTable.id, postTable.userId), desc(sql`${postTable.likeCount} + ${postTable.commentCount}`), desc(postTable.createdAt))
-        .then((posts) => posts.map((post) => ({ ...post, tags: (post.tags ?? []).filter((tag) => tag !== null) })));
+        .orderBy(eq(userTable.id, postTable.userId), desc(sql`${postTable.likeCount} + ${postTable.commentCount}`), desc(postTable.createdAt));
 
       return c.json({ data });
     } catch (error: any) {
@@ -62,7 +60,6 @@ const app = new Hono()
           content: postTable.content,
           image: postTable.image,
           createdAt: postTable.createdAt,
-          tags: sql<z.infer<typeof tagSchema>[] | null | [null]>`(json_agg(${tagTable}))`,
           userId: postTable.userId,
           user: userTable.name,
           username: userTable.userName,
@@ -75,12 +72,9 @@ const app = new Hono()
         .where(eq(postTable.userId, userId))
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
         .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
-        .leftJoin(postLikeTable, eq(postLikeTable.postId, postTable.id))
-        .leftJoin(tagTable, eq(tagTable.id, postToTagTable.tagId))
-
+        .leftJoin(postLikeTable, and(eq(postLikeTable.postId, postTable.id), eq(postLikeTable.userId, curUserId)))
         .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image, postLikeTable.userId)
-        .orderBy(desc(postTable.createdAt))
-        .then((posts) => posts.map((post) => ({ ...post, tags: (post.tags ?? []).filter((tag) => tag !== null) })));
+        .orderBy(desc(postTable.createdAt));
 
       return c.json({ data });
     } catch (error: any) {
@@ -98,12 +92,25 @@ const app = new Hono()
         .values({ ...values, userId: curUserId })
         .returning({ id: postTable.id, userId: postTable.userId });
 
+      // get the hashtags array
+      const hashtagsArray = values.content.split(/#(\w+)/g).filter((_, i) => i % 2 === 1);
+
+      if (hashtagsArray.length > 0) {
+        // insert the hashtags
+        const tags = await db
+          .insert(tagTable)
+          .values(hashtagsArray.map((tag) => ({ name: tag })))
+          .returning({ id: tagTable.id });
+
+        // connect the hashtags with the current post
+        await db.insert(postToTagTable).values(tags.map((tag) => ({ postId: data.id, tagId: tag.id })));
+      }
+      // send notification to all the followers
       const curUserFollowers = await db.select({ id: followingTable.followedBy }).from(followingTable).where(eq(followingTable.userId, curUserId));
 
       type notificationT = z.infer<typeof notificationInsertSchema>;
       const notifications: notificationT[] = curUserFollowers.map(({ id }) => ({ userId: curUserId, toUserId: id, postId: data.id, notificationName: "NEW_POST" }));
 
-      // send notification to all the followers
       await db.insert(notificationTable).values(notifications);
 
       return c.json({ data });
@@ -117,13 +124,12 @@ const app = new Hono()
       const auth = c.get("authUser");
       const curUserId = auth.session.user?.id as string;
 
-      const data = await db
+      const [data] = await db
         .select({
           id: postTable.id,
           content: postTable.content,
           image: postTable.image,
           createdAt: postTable.createdAt,
-          tags: sql<z.infer<typeof tagSchema>[] | null | [null]>`(json_agg(${tagTable}))`,
           userId: postTable.userId,
           user: userTable.name,
           username: userTable.userName,
@@ -137,11 +143,9 @@ const app = new Hono()
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
         .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
         .leftJoin(postLikeTable, eq(postLikeTable.postId, postTable.id))
-        .leftJoin(tagTable, eq(tagTable.id, postToTagTable.tagId))
 
         .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image, postLikeTable.userId)
-        .limit(1)
-        .then(([post]) => ({ ...post, tags: (post.tags ?? []).filter((tag) => tag !== null) }));
+        .limit(1);
 
       return c.json({ data });
     } catch (error: any) {
@@ -178,8 +182,29 @@ const app = new Hono()
       const [data] = await db
         .update(postTable)
         .set({ ...values, updatedAt })
-        .where((eq(postTable.id, postId), eq(postTable.userId, curUserId)))
+        .where(and(eq(postTable.id, postId), eq(postTable.userId, curUserId)))
         .returning({ postId: postTable.id, userId: postTable.userId });
+
+      // delete all the hashtags
+      const tagsToDelete = db.$with("tags_to_delete").as(db.select({ id: tagTable.id }).from(tagTable).leftJoin(postToTagTable, eq(tagTable.id, postToTagTable.tagId)).where(eq(postToTagTable.postId, data.postId)));
+      await db
+        .with(tagsToDelete)
+        .delete(tagTable)
+        .where(inArray(tagTable.id, sql`(select * from ${tagsToDelete})`));
+
+      // get hashtags from the post
+      const hashtagsArray = values.content.split(/#(\w+)/g).filter((_, i) => i % 2 === 1);
+
+      if (hashtagsArray.length > 0) {
+        // insert the hashtags
+        const tags = await db
+          .insert(tagTable)
+          .values(hashtagsArray.map((tag) => ({ name: tag })))
+          .returning({ id: tagTable.id });
+
+        // connect the hashtags with the current post
+        await db.insert(postToTagTable).values(tags.map((tag) => ({ postId: data.postId, tagId: tag.id })));
+      }
 
       return c.json({ data });
     } catch (error: any) {

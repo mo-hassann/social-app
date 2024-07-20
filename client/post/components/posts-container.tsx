@@ -4,10 +4,6 @@ import PostCard from "./post-card";
 type props = {
   curUserId?: string;
   posts: {
-    tags: {
-      id: string;
-      name: string;
-    }[];
     id: string;
     content: string;
     image: string | null;

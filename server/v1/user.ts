@@ -100,9 +100,7 @@ const app = new Hono()
         .leftJoin(followingTable, eq(followingTable.userId, userTable.id))
         .where(eq(userTable.id, curUserId));
 
-      const user = { ...data };
-
-      return c.json({ data: user });
+      return c.json({ data });
     } catch (error: any) {
       return c.json({ message: "something went wrong", cause: error.message }, 400);
     }
@@ -196,9 +194,7 @@ const app = new Hono()
         .leftJoin(followingTable, eq(followingTable.userId, userTable.id))
         .where(eq(userTable.id, userId));
 
-      const user = { ...data };
-
-      return c.json({ data: user });
+      return c.json({ data });
     } catch (error: any) {
       return c.json({ message: "something went wrong", cause: error.message }, 400);
     }

@@ -1,15 +1,13 @@
 "use client";
 
-import useNewComment from "@/client/comment/api/use-new-comment";
 import CommentsSection from "@/client/comment/components/comments-section";
-import NewCommentForm from "@/client/comment/components/new-comment-form";
-import ReplayCommentBar from "@/client/comment/components/replay-comment-bar";
-import useReplayComment from "@/client/comment/hooks/use-comment-replay";
+
 import useGetPost from "@/client/post/api/use-get-post";
 import PostCard from "@/client/post/components/post-card";
 import ErrorCard from "@/components/error-card";
+import NotFoundCard from "@/components/not-found-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetUserId } from "@/hooks/use-get-user-id";
+
 import { useSession } from "@/hooks/use-session";
 
 type props = { params: { postId: string } };
@@ -23,6 +21,7 @@ export default function PostPage({ params: { postId } }: props) {
 
   if (isError) return <ErrorCard />;
   if (isLoading) return <PostSkeleton />;
+  if (!postQuery.data) return <NotFoundCard />;
 
   return (
     <div className="flex flex-col p-3 h-full">

@@ -124,7 +124,7 @@ const app = new Hono()
       const [data] = await db
         .update(commentTable)
         .set({ ...values, updatedAt })
-        .where((eq(commentTable.id, commentId), eq(commentTable.userId, curUserId)))
+        .where(and(eq(commentTable.id, commentId), eq(commentTable.userId, curUserId)))
         .returning({ commentId: commentTable.id, postId: commentTable.postId });
 
       return c.json({ data });

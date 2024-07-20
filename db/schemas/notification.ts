@@ -19,8 +19,8 @@ export const notificationTable = pgTable("notification", {
   notificationName: notificationEnum("notification_name").notNull(),
   isRead: boolean("is_read").notNull().default(false),
 
-  postId: uuid("post_id").references(() => postTable.id),
-  commentId: uuid("comment_id").references(() => commentTable.id),
+  postId: uuid("post_id").references(() => postTable.id, { onDelete: "cascade" }),
+  commentId: uuid("comment_id").references(() => commentTable.id, { onDelete: "cascade" }),
 
   createdAt: timestamp("created_at", { mode: "string", withTimezone: true }).defaultNow().notNull(),
 });

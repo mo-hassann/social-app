@@ -5,7 +5,7 @@ import PostsContainer from "@/client/post/components/posts-container";
 import useGetUser from "@/client/user/api/use-get-user";
 import UserInfoHeader from "@/client/user/components/user-info-header";
 import ErrorCard from "@/components/error-card";
-import { Separator } from "@/components/ui/separator";
+import NotFoundCard from "@/components/not-found-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetUserId } from "@/hooks/use-get-user-id";
 
@@ -18,8 +18,12 @@ export default function UserPage({ params: { userId } }: props) {
 
   const isError = userQuery.isError || userPostsQuery.isError;
   const isLoading = userQuery.isLoading || userQuery.isPending || userPostsQuery.isLoading || userPostsQuery.isPending || !curUserId;
+
+  console.log(userQuery.data, "userQuery data -------");
+
   if (isError) return <ErrorCard />;
   if (isLoading) return <UserInfoHeaderSkeleton />;
+  if (!userQuery.data) return <NotFoundCard />;
 
   return (
     <div className="p-3 h-full overflow-y-auto pb-16">

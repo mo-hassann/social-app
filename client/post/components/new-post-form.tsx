@@ -12,6 +12,7 @@ import { SendHorizonal } from "lucide-react";
 import UserAvatar from "@/components/user-avatar";
 import Spinner from "@/components/spinner";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 const FormSchema = newPostFormSchema;
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -32,6 +33,17 @@ export default function NewPostForm({ defaultValues, onSubmit, isPending, curUse
     resolver: zodResolver(FormSchema),
     defaultValues,
   });
+
+  const {
+    reset,
+    formState: { isSubmitSuccessful },
+  } = form;
+
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset();
+    }
+  }, [isSubmitSuccessful, reset]);
 
   return (
     <Form {...form}>

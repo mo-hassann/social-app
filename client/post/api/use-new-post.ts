@@ -12,6 +12,7 @@ type resT = InferResponseType<typeof $post>;
 type reqT = InferRequestType<typeof $post>["json"];
 
 export default function useNewPost() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const mutation = useMutation<resT, Error, reqT>({
     mutationFn: async (values) => {
@@ -24,11 +25,12 @@ export default function useNewPost() {
       return await res.json();
     },
     onSuccess: (data) => {
+      toast.success("post added successfully");
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       if ("data" in data) {
         queryClient.invalidateQueries({ queryKey: ["user_posts", data.data.userId] });
+        router.push(`/posts/${data.data.id}`);
       }
-      toast.success("post added successfully");
     },
     onError: (error) => {
       toast.error(error.message);

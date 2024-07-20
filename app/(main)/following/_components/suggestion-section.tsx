@@ -19,7 +19,7 @@ const SuggestionSection = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {userSuggestionQuery.data.map((user) => (
-        <Link key={user.id} href={`/users/${user.id}`} className="flex items-center p-2 rounded-md gap-2 bg-muted/10 hover:bg-muted/40">
+        <Link key={user.id} href={`/users/${user.id}`} className="flex items-center p-2 rounded-md gap-2 bg-muted/35 hover:bg-muted/50 dark:bg-muted/10 dark:hover:bg-muted/40">
           <UserAvatar className="size-20" fallbackText={user.username} image={user.image || undefined} />
           <div>
             <p className="text-lg">{user.name}</p>

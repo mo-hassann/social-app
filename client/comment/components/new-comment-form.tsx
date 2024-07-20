@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { SendHorizonal } from "lucide-react";
 import UserAvatar from "@/components/user-avatar";
 import type { AdapterUser } from "@auth/core/adapters";
+import { useEffect } from "react";
 
 const FormSchema = newCommentFormSchema;
 type FormSchemaType = z.infer<typeof FormSchema>;
@@ -29,6 +30,17 @@ export default function NewCommentForm({ curUser, defaultValues, onSubmit, disab
     resolver: zodResolver(FormSchema),
     defaultValues,
   });
+
+  const {
+    reset,
+    formState: { isSubmitSuccessful },
+  } = form;
+
+  useEffect(() => {
+    if (isSubmitSuccessful) {
+      reset();
+    }
+  }, [isSubmitSuccessful, reset]);
 
   return (
     <Form {...form}>

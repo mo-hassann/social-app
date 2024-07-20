@@ -4,10 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatDistance } from "date-fns";
 
-import { Dot, EllipsisVertical, MessageCircleHeart, ThumbsUp } from "lucide-react";
+import { Dot, MessageCircleHeart } from "lucide-react";
 import LikeBtn from "@/client/like/components/like-btn";
 import UserAvatar from "@/components/user-avatar";
-import useIsMountain from "@/hooks/use-mountain";
 import PostActions from "./post-actions";
 
 type props = {
@@ -24,10 +23,6 @@ type props = {
     userImage: string | null;
     commentCount: number;
     likeCount: number;
-    tags: {
-      id?: string;
-      name: string;
-    }[];
   };
 };
 

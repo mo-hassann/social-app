@@ -18,7 +18,7 @@ export default async function UserIcon() {
       <DropdownMenuTrigger>
         <UserAvatar className="hover:outline-1 outline-primary" fallbackText={user?.name || undefined} image={user?.image || undefined} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="space-y-1">
         <DropdownMenuItem asChild>
           <Link href={`/users/${user?.id}`}>
             <User2Icon size={16} className="mr-2" /> My Profile
