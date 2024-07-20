@@ -18,6 +18,7 @@ export default function useGetSearchPosts(searchQuery?: string) {
 
       return data;
     },
+    enabled: !!searchQuery,
   });
 
   return query;

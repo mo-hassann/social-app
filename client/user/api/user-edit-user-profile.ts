@@ -15,7 +15,6 @@ export default function useEditUserProfile() {
   const queryClient = useQueryClient();
   const mutation = useMutation<resT, Error, reqT>({
     mutationFn: async (values) => {
-      console.log(values, "from mutation");
       const res = await $patch({ json: { ...values } });
 
       // handle throw the error response

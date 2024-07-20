@@ -7,7 +7,6 @@ export const useSession = () => {
     queryFn: async () => {
       const res = await fetch("/api/auth/session", { cache: "no-store" });
       const data = ((await res.json()) as { user: AdapterUser } & AdapterSession) || undefined;
-      console.log(data, "data from session ------");
       return data;
     },
     staleTime: Infinity,

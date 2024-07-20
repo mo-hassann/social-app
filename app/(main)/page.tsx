@@ -20,12 +20,11 @@ export default function HomePage() {
 
   if (isError) return <ErrorCard />;
   if (isLoading) return <HomePageSkeleton />;
-  if (postsQuery.data.length === 0) return <NoDataCard />;
 
   return (
     <div className="px-4 h-full overflow-y-scroll">
       <NewPostForm curUser={{ name: session.user.name as string | undefined, image: session.user.image as string | undefined }} defaultValues={{ content: "", image: null }} isPending={isPending} onSubmit={(values) => postMutation.mutate({ ...values })} />
-      <PostsContainer posts={postsQuery.data} curUserId={session?.user?.id} />
+      {postsQuery.data.length > 0 ? <PostsContainer posts={postsQuery.data} curUserId={session?.user?.id} /> : <NoDataCard />}
     </div>
   );
 }

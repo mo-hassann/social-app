@@ -19,8 +19,6 @@ export default function UserPage({ params: { userId } }: props) {
   const isError = userQuery.isError || userPostsQuery.isError;
   const isLoading = userQuery.isLoading || userQuery.isPending || userPostsQuery.isLoading || userPostsQuery.isPending || !curUserId;
 
-  console.log(userQuery.data, "userQuery data -------");
-
   if (isError) return <ErrorCard />;
   if (isLoading) return <UserInfoHeaderSkeleton />;
   if (!userQuery.data) return <NotFoundCard />;

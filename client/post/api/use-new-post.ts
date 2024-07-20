@@ -27,6 +27,7 @@ export default function useNewPost() {
     onSuccess: (data) => {
       toast.success("post added successfully");
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["trending_tags"] });
       if ("data" in data) {
         queryClient.invalidateQueries({ queryKey: ["user_posts", data.data.userId] });
         router.push(`/posts/${data.data.id}`);

@@ -108,10 +108,12 @@ const app = new Hono()
       // send notification to all the followers
       const curUserFollowers = await db.select({ id: followingTable.followedBy }).from(followingTable).where(eq(followingTable.userId, curUserId));
 
-      type notificationT = z.infer<typeof notificationInsertSchema>;
-      const notifications: notificationT[] = curUserFollowers.map(({ id }) => ({ userId: curUserId, toUserId: id, postId: data.id, notificationName: "NEW_POST" }));
+      if (curUserFollowers.length > 0) {
+        type notificationT = z.infer<typeof notificationInsertSchema>;
+        const notifications: notificationT[] = curUserFollowers.map(({ id }) => ({ userId: curUserId, toUserId: id, postId: data.id, notificationName: "NEW_POST" }));
 
-      await db.insert(notificationTable).values(notifications);
+        await db.insert(notificationTable).values(notifications);
+      }
 
       return c.json({ data });
     } catch (error: any) {
