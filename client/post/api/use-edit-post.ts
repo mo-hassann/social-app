@@ -24,6 +24,7 @@ export default function useEditPost(postId: string) {
       return await res.json();
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["post", postId] });
       queryClient.invalidateQueries({ queryKey: ["post_edit", postId] });
       queryClient.invalidateQueries({ queryKey: ["trending_tags"] });
