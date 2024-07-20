@@ -1,4 +1,4 @@
-# this is hono drizzle starter code
+# social media app with next js, hono, drizzle orm and react query
 
 ## Getting Started
 
