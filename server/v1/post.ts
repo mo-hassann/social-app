@@ -143,8 +143,7 @@ const app = new Hono()
         .from(postTable)
         .where(eq(postTable.id, postId))
         .innerJoin(userTable, eq(postTable.userId, userTable.id))
-        .leftJoin(postToTagTable, eq(postTable.id, postToTagTable.postId))
-        .leftJoin(postLikeTable, eq(postLikeTable.postId, postTable.id))
+.leftJoin(postLikeTable, and(eq(postLikeTable.postId, postTable.id), eq(postLikeTable.userId, curUserId)))
 
         .groupBy(postTable.id, userTable.id, userTable.name, userTable.userName, userTable.image, postLikeTable.userId)
         .limit(1);
