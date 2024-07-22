@@ -1,4 +1,5 @@
 # social media app with next js, hono, drizzle orm and react query
+![alt text](https://github.com/mo-hassann/social-app/blob/main/public/app-img1.png)
 
 ## Getting Started
 
