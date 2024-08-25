@@ -63,17 +63,10 @@ To get a local copy of this project up and running, follow these steps.
 
     ```env
     DATABASE_URL=your_database_url
-    JWT_SECRET=your_jwt_secret
-    NEXT_PUBLIC_API_URL=your_api_url
-
-DATABASE_SECRET=your_database_secret
-
-DRIZZLE_DATABASE_URL=your_database_url_for_drizzle
-
-AUTH_SECRET=any_random_secret
-
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
+    DATABASE_SECRET=your_database_secret
+    DRIZZLE_DATABASE_URL=your_database_url_for_drizzle
+    AUTH_SECRET=any_random_secret
+    NEXT_PUBLIC_APP_URL=http://localhost:3000
     ```
 
 4. **Run database migrations:**
@@ -99,10 +92,6 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 - **Development mode:** `bun dev`
 - **Production mode:** `bun run build && bun start`
-
-### ✔ API Documentation
-
-The API documentation for this application is available at [http://localhost:3000/api/docs](http://localhost:3000/api/docs). It details all endpoints and their usage.
 
 ## 💚 Contributing
 
