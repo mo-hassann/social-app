@@ -5,7 +5,7 @@ A modern social media application built using Next.js, Hono, Drizzle ORM, and Re
 
 ## 📃 Table of Contents
 
-- [Features](#features)
+- [✨ Features](#features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Installation](#installation)
@@ -16,7 +16,7 @@ A modern social media application built using Next.js, Hono, Drizzle ORM, and Re
 
 ## ✨ Features
 
-- **User Authentication**: Secure sign-up and login with JWT authentication.
+- **User Authentication**: Secure sign-up and login with Auth JS.
 - **User Profiles**: Customizable profiles with avatars and bio.
 - **Posts**: Create, edit, and delete posts.
 - **Comments**: Comment on posts and engage with the community.
@@ -26,6 +26,7 @@ A modern social media application built using Next.js, Hono, Drizzle ORM, and Re
 ## 👩‍💻 Tech Stack
 
 - **Next.js**: A React framework for building server-side rendering and static web applications.
+- **Auth.js**: Free and open source Authentication for the Web.
 - **Hono**: A lightweight web framework for building server-side applications with TypeScript.
 - **Drizzle ORM**: TypeScript-first ORM for type-safe database access.
 - **React Query**: Data-fetching library for managing server-state in React applications.
@@ -107,4 +108,4 @@ Please make sure to update tests as appropriate.
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See [License](/LICENSE) for more information.
