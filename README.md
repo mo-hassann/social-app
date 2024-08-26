@@ -5,14 +5,13 @@ A modern social media application built using Next.js, Hono, Drizzle ORM, and Re
 
 ## 📃 Table of Contents
 
-- [✨ Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [License](#license)
+- [✨ Features](#-features)
+- [👩‍💻 Tech Stack](#-tech-stack)
+- [💻 Getting Started](#-getting-started)
+- [🛠️ Installation](#-️installation)
+- [📖 Usage](#-usage)
+- [💚 Contributing](#-contributing)
+- [📜 License](#-license)
 
 ## ✨ Features
 
@@ -41,7 +40,8 @@ To get a local copy of this project up and running, follow these steps.
 - **Bun**: Ensure you have Bun installed. Follow the [official Bun installation guide](https://bun.sh/docs/installation).
 - PostgreSQL (or another supported SQL database)
 
-### ✔ Installation
+
+## 🛠️ Installation
 
 1. **Clone the repository:**
 
@@ -87,7 +87,7 @@ To get a local copy of this project up and running, follow these steps.
     Open [http://localhost:3000](http://localhost:3000) to view the app in your browser.
 
 
-## 📈 Usage
+## 📖 Usage
 
 ### ✔ Running the app
 
@@ -106,6 +106,6 @@ We welcome contributions to this project. Please follow these steps to contribut
 
 Please make sure to update tests as appropriate.
 
-## License
+## 📜 License
 
 Distributed under the MIT License. See [License](/LICENSE) for more information.
